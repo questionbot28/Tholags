@@ -65,56 +65,68 @@ for (const folder of commandFolders) {
 // Handle ticket creation
 async function handleTicketCreation(interaction, category) {
     const guild = interaction.guild;
+    console.log('Attempting to create ticket with category:', category);
+    console.log('Available ticket categories:', config.ticketcategories);
+
     const ticketCategory = guild.channels.cache.get(config.ticketcategories[0]);
 
     if (!ticketCategory) {
-        return interaction.reply({ content: 'Ticket category not found!', ephemeral: true });
+        await interaction.reply({ content: 'Ticket category not found! Please check category IDs in config.', ephemeral: true });
+        console.error('Ticket category not found. Available categories:', config.ticketcategories);
+        console.error('Guild channels:', Array.from(guild.channels.cache.map(c => `${c.name}: ${c.id}`)));
+        return;
     }
 
-    const ticketChannel = await guild.channels.create(`ticket-${interaction.user.username}`, {
-        type: 'GUILD_TEXT',
-        parent: ticketCategory,
-        permissionOverwrites: [
-            {
-                id: guild.id,
-                deny: [Discord.Permissions.FLAGS.VIEW_CHANNEL],
-            },
-            {
-                id: interaction.user.id,
-                allow: [
-                    Discord.Permissions.FLAGS.VIEW_CHANNEL,
-                    Discord.Permissions.FLAGS.SEND_MESSAGES,
-                    Discord.Permissions.FLAGS.READ_MESSAGE_HISTORY
-                ],
-            },
-            {
-                id: client.user.id,
-                allow: [
-                    Discord.Permissions.FLAGS.VIEW_CHANNEL,
-                    Discord.Permissions.FLAGS.SEND_MESSAGES,
-                    Discord.Permissions.FLAGS.READ_MESSAGE_HISTORY
-                ],
-            },
-        ],
-    });
+    try {
+        console.log('Creating ticket channel in category:', ticketCategory.name);
+        const ticketChannel = await guild.channels.create(`ticket-${interaction.user.username}`, {
+            type: 'GUILD_TEXT',
+            parent: ticketCategory,
+            permissionOverwrites: [
+                {
+                    id: guild.id,
+                    deny: [Discord.Permissions.FLAGS.VIEW_CHANNEL],
+                },
+                {
+                    id: interaction.user.id,
+                    allow: [
+                        Discord.Permissions.FLAGS.VIEW_CHANNEL,
+                        Discord.Permissions.FLAGS.SEND_MESSAGES,
+                        Discord.Permissions.FLAGS.READ_MESSAGE_HISTORY
+                    ],
+                },
+                {
+                    id: client.user.id,
+                    allow: [
+                        Discord.Permissions.FLAGS.VIEW_CHANNEL,
+                        Discord.Permissions.FLAGS.SEND_MESSAGES,
+                        Discord.Permissions.FLAGS.READ_MESSAGE_HISTORY
+                    ],
+                },
+            ],
+        });
 
-    const embed = new Discord.MessageEmbed()
-        .setColor('#0099ff')
-        .setTitle(`${category} Support Ticket`)
-        .setDescription(`Welcome ${interaction.user}!\nSupport will be with you shortly.\n\nCategory: ${category}`)
-        .setTimestamp();
+        const embed = new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setTitle(`${category} Support Ticket`)
+            .setDescription(`Welcome ${interaction.user}!\nSupport will be with you shortly.\n\nCategory: ${category}`)
+            .setTimestamp();
 
-    const row = new Discord.MessageActionRow()
-        .addComponents(
-            new Discord.MessageButton()
-                .setCustomId('close_ticket')
-                .setLabel('Close Ticket')
-                .setStyle('DANGER')
-                .setEmoji('🔒')
-        );
+        const row = new Discord.MessageActionRow()
+            .addComponents(
+                new Discord.MessageButton()
+                    .setCustomId('close_ticket')
+                    .setLabel('Close Ticket')
+                    .setStyle('DANGER')
+                    .setEmoji('🔒')
+            );
 
-    await ticketChannel.send({ embeds: [embed], components: [row] });
-    return interaction.reply({ content: `Ticket created! Please check ${ticketChannel}`, ephemeral: true });
+        await ticketChannel.send({ embeds: [embed], components: [row] });
+        return interaction.reply({ content: `Ticket created! Please check ${ticketChannel}`, ephemeral: true });
+    } catch (error) {
+        console.error('Error creating ticket channel:', error);
+        return interaction.reply({ content: `Error creating ticket: ${error.message}`, ephemeral: true });
+    }
 }
 
 // Event handlers
