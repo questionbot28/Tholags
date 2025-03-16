@@ -113,8 +113,56 @@ module.exports = {
       const updatedLines = lines.filter(line => line !== randomAccount);
       fs.writeFileSync(filePath, updatedLines.join('\n'), 'utf8');
       
-      // Send the account as a DM to the user
+      // Update drop statistics
       try {
+        const cooldownFile = './cooldown.json';
+        let cooldownData = JSON.parse(fs.readFileSync(cooldownFile, 'utf8'));
+        
+        // Increment total accounts claimed
+        cooldownData.accountsClaimed = (cooldownData.accountsClaimed || 0) + 1;
+        
+        // Initialize dropStats if it doesn't exist
+        if (!cooldownData.dropStats) {
+          cooldownData.dropStats = {
+            basic: 0,
+            premium: 0,
+            extreme: 0,
+            free: 0,
+            cookie: 0
+          };
+        }
+        
+        // Increment the appropriate tier counter
+        let tierKey;
+        switch(tier) {
+          case 'basic':
+          case 'b':
+            tierKey = 'basic';
+            break;
+          case 'premium':
+          case 'p':
+            tierKey = 'premium';
+            break;
+          case 'extreme':
+          case 'e':
+            tierKey = 'extreme';
+            break;
+          case 'free':
+          case 'f':
+            tierKey = 'free';
+            break;
+          case 'cookie':
+          case 'c':
+            tierKey = 'cookie';
+            break;
+        }
+        
+        cooldownData.dropStats[tierKey] = (cooldownData.dropStats[tierKey] || 0) + 1;
+        
+        // Save updated statistics
+        fs.writeFileSync(cooldownFile, JSON.stringify(cooldownData, null, 2));
+        
+        // Send the account as a DM to the user
         const dmEmbed = new MessageEmbed()
           .setColor('#00FF00')
           .setTitle(`${tier.toUpperCase()} Tier Drop - ${randomFile.replace('.txt', '')}`)
@@ -126,7 +174,7 @@ module.exports = {
         // Send confirmation in the channel
         const successEmbed = new MessageEmbed()
           .setColor('#00FF00')
-          .setTitle('Drop Claimed!')
+          .setTitle('🎉 Drop Claimed!')
           .setDescription(`${message.author.tag} has claimed a ${tier.toUpperCase()} tier account!\nCheck your DMs for the account details.`)
           .setFooter({ text: 'Type .drop <tier> to claim an account' });
 

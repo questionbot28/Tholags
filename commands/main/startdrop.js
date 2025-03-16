@@ -17,11 +17,22 @@ module.exports = {
       return message.channel.send({ embeds: [channelErrorEmbed] });
     }
 
-    // Check if the user has the required role to use the command
-    const staffRoleIds = config.staffRoleIds;
+    // Check if the user has admin or staff permissions
+    const adminUserIds = config.adminUserIds || [];
+    const staffRoleIds = config.staffRoleIds || [];
+    
+    // Check if user is in the admin list
+    const isAdmin = adminUserIds.includes(message.author.id);
+    
+    // Check if user has staff role
     const hasStaffRole = message.member.roles.cache.some(role => staffRoleIds.includes(role.id));
-
-    if (!hasStaffRole) {
+    
+    // For debugging - log the user's ID
+    console.log(`User ${message.author.tag} (ID: ${message.author.id}) attempted to start a drop`);
+    console.log(`Admin IDs:`, adminUserIds);
+    console.log(`Staff Role IDs:`, staffRoleIds);
+    
+    if (!isAdmin && !hasStaffRole) {
       const roleErrorEmbed = new MessageEmbed()
         .setColor('#FF0000')
         .setTitle('Error')

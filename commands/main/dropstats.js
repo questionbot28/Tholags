@@ -67,6 +67,16 @@ module.exports = {
     const resetHours = Math.floor(timeUntilReset / (60 * 60 * 1000));
     const resetMinutes = Math.floor((timeUntilReset % (60 * 60 * 1000)) / (60 * 1000));
 
+    // Calculate total accounts claimed and create tier breakdown 
+    const accountsClaimed = cooldownData.accountsClaimed || 0;
+    const dropStats = cooldownData.dropStats || {
+      basic: 0,
+      premium: 0,
+      extreme: 0,
+      free: 0,
+      cookie: 0
+    };
+    
     // Create embed with drop stats
     const statsEmbed = new MessageEmbed()
       .setColor('#0099ff')
@@ -76,6 +86,9 @@ module.exports = {
       .addField('Drops Remaining', `${Math.max(0, 4 - cooldownData.totalDrops)}/4`, true)
       .addField('Drop Count Reset', `Resets in ${resetHours} hours and ${resetMinutes} minutes`)
       .addField('Cooldown Status', cooldownStatus)
+      .addField('Total Accounts Claimed', `${accountsClaimed}`, true)
+      .addField('Accounts by Tier', 
+        `Basic: ${dropStats.basic}\nPremium: ${dropStats.premium}\nExtreme: ${dropStats.extreme}\nFree: ${dropStats.free}\nCookie: ${dropStats.cookie}`)
       .setFooter({ text: `Last updated: ${new Date().toLocaleString()}` });
 
     message.channel.send({ embeds: [statsEmbed] });
