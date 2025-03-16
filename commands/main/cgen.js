@@ -15,40 +15,46 @@ module.exports = {
         if (!cgenChannel) {
             console.error('cgenChannel not found:', config.cgenChannel);
             if (config.command.error_message === true) {
-                return message.channel.send(
-                    new MessageEmbed()
-                        .setColor(config.color.red)
-                        .setTitle('Error occurred!')
-                        .setDescription('Not a valid cgen channel specified!')
-                        .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
-                        .setTimestamp()
-                );
+                return message.channel.send({
+                    embeds: [
+                        new MessageEmbed()
+                            .setColor(config.color.red)
+                            .setTitle('Error occurred!')
+                            .setDescription('Not a valid cgen channel specified!')
+                            .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
+                            .setTimestamp()
+                    ]
+                });
             }
             return;
         }
 
         if (message.channel.id === config.cgenChannel) {
             if (generated.has(message.author.id)) {
-                return message.channel.send(
-                    new MessageEmbed()
-                        .setColor(config.color.red)
-                        .setTitle('Cooldown!')
-                        .setDescription(`Please wait **${config.genCooldown}m** before executing that command again!`)
-                        .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
-                        .setTimestamp()
-                );
+                return message.channel.send({
+                    embeds: [
+                        new MessageEmbed()
+                            .setColor(config.color.red)
+                            .setTitle('Cooldown!')
+                            .setDescription(`Please wait **${config.genCooldown}m** before executing that command again!`)
+                            .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
+                            .setTimestamp()
+                    ]
+                });
             }
 
             const service = args[0];
             if (!service) {
-                return message.channel.send(
-                    new MessageEmbed()
-                        .setColor(config.color.red)
-                        .setTitle('Missing parameters!')
-                        .setDescription('You need to give a service name!')
-                        .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
-                        .setTimestamp()
-                );
+                return message.channel.send({
+                    embeds: [
+                        new MessageEmbed()
+                            .setColor(config.color.red)
+                            .setTitle('Missing parameters!')
+                            .setDescription('You need to give a service name!')
+                            .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
+                            .setTimestamp()
+                    ]
+                });
             }
 
             // Make sure the cookies directory exists
@@ -66,14 +72,16 @@ module.exports = {
                     const firstLine = data.split('\n')[0];
 
                     if (position === -1) {
-                        return message.channel.send(
-                            new MessageEmbed()
-                                .setColor(config.color.red)
-                                .setTitle('Generator error!')
-                                .setDescription(`I do not find the \`${service}\` service in my cookies stock!`)
-                                .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
-                                .setTimestamp()
-                        );
+                        return message.channel.send({
+                            embeds: [
+                                new MessageEmbed()
+                                    .setColor(config.color.red)
+                                    .setTitle('Generator error!')
+                                    .setDescription(`I do not find the \`${service}\` service in my cookies stock!`)
+                                    .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
+                                    .setTimestamp()
+                            ]
+                        });
                     }
 
                     const generatedCode = firstLine;
@@ -98,7 +106,7 @@ module.exports = {
                     }
 
                     // DM the user with the embed
-                    message.author.send(redemptionEmbed).then(() => {
+                    message.author.send({ embeds: [redemptionEmbed] }).then(() => {
                         // Save the code to redeemcodes.txt
                         const redeemFilePath = `${redeemDir}/redeemcodes.txt`;
                         fs.appendFileSync(redeemFilePath, `${generatedCode} - ${service} in cookies category\n`);
@@ -108,25 +116,29 @@ module.exports = {
                             fs.writeFile(filePath, data, function (error) {
                                 if (error) {
                                     console.error('Error updating service file:', error);
-                                    return message.channel.send(
-                                        new MessageEmbed()
-                                            .setColor(config.color.red)
-                                            .setTitle('Generator error!')
-                                            .setDescription('An error occurred while updating the service file.')
-                                            .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
-                                            .setTimestamp()
-                                    );
+                                    return message.channel.send({
+                                        embeds: [
+                                            new MessageEmbed()
+                                                .setColor(config.color.red)
+                                                .setTitle('Generator error!')
+                                                .setDescription('An error occurred while updating the service file.')
+                                                .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
+                                                .setTimestamp()
+                                        ]
+                                    });
                                 }
 
-                                message.channel.send(
-                                    new MessageEmbed()
-                                        .setColor(config.color.green)
-                                        .setTitle('Account generated successfully!')
-                                        .setDescription(`Check your private messages ${message.author}! If you do not receive the message, please unlock your private messages.`)
-                                        .setImage(config.gif)
-                                        .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
-                                        .setTimestamp()
-                                );
+                                message.channel.send({
+                                    embeds: [
+                                        new MessageEmbed()
+                                            .setColor(config.color.green)
+                                            .setTitle('Account generated successfully!')
+                                            .setDescription(`Check your private messages ${message.author}! If you do not receive the message, please unlock your private messages.`)
+                                            .setImage(config.gif)
+                                            .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
+                                            .setTimestamp()
+                                    ]
+                                });
 
                                 generated.add(message.author.id);
                                 setTimeout(() => {
@@ -136,35 +148,41 @@ module.exports = {
                         }
                     }).catch((err) => {
                         console.error(`Failed to send DM to ${message.author.tag}:`, err);
-                        message.channel.send(
-                            new MessageEmbed()
-                                .setColor(config.color.red)
-                                .setTitle('Error!')
-                                .setDescription('Could not send you a DM. Please enable direct messages from server members.')
-                                .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
-                                .setTimestamp()
-                        );
+                        message.channel.send({
+                            embeds: [
+                                new MessageEmbed()
+                                    .setColor(config.color.red)
+                                    .setTitle('Error!')
+                                    .setDescription('Could not send you a DM. Please enable direct messages from server members.')
+                                    .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
+                                    .setTimestamp()
+                            ]
+                        });
                     });
                 } else {
-                    return message.channel.send(
-                        new MessageEmbed()
-                            .setColor(config.color.red)
-                            .setTitle('Generator error!')
-                            .setDescription(`Service \`${service}\` does not exist!`)
-                            .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
-                            .setTimestamp()
-                    );
+                    return message.channel.send({
+                        embeds: [
+                            new MessageEmbed()
+                                .setColor(config.color.red)
+                                .setTitle('Generator error!')
+                                .setDescription(`Service \`${service}\` does not exist!`)
+                                .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
+                                .setTimestamp()
+                        ]
+                    });
                 }
             });
         } else {
-            message.channel.send(
-                new MessageEmbed()
-                    .setColor(config.color.red)
-                    .setTitle('Wrong command usage!')
-                    .setDescription(`You cannot use the \`cgen\` command in this channel! Try it in <#${config.cgenChannel}>!`)
-                    .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
-                    .setTimestamp()
-            );
+            message.channel.send({
+                embeds: [
+                    new MessageEmbed()
+                        .setColor(config.color.red)
+                        .setTitle('Wrong command usage!')
+                        .setDescription(`You cannot use the \`cgen\` command in this channel! Try it in <#${config.cgenChannel}>!`)
+                        .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
+                        .setTimestamp()
+                ]
+            });
         }
     },
 };

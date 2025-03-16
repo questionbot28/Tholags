@@ -16,26 +16,116 @@ const client = new Discord.Client({
         Discord.Intents.FLAGS.GUILD_WEBHOOKS,
         Discord.Intents.FLAGS.GUILD_PRESENCES,
         Discord.Intents.FLAGS.DIRECT_MESSAGES,
-        Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS
+        Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+        Discord.Intents.FLAGS.GUILD_INVITES,
+        Discord.Intents.FLAGS.GUILD_MEMBERS
     ],
     partials: ['CHANNEL', 'MESSAGE', 'REACTION'] 
 });
 
-// Database setup
-const db = new sqlite3.Database('vouches.db', (err) => {
+// Attach database to client before connecting
+client.db = new sqlite3.Database('vouches.db', (err) => {
     if (err) {
         console.error('Error connecting to SQLite3 database:', err.message);
     } else {
         console.log('Connected to SQLite3 database');
-        db.run(`CREATE TABLE IF NOT EXISTS vouches (
-            user_id TEXT PRIMARY KEY,
-            vouches INTEGER DEFAULT 0,
-            negvouches INTEGER DEFAULT 0,
-            reasons TEXT DEFAULT '[]',
-            todayvouches INTEGER DEFAULT 0,
-            last3daysvouches INTEGER DEFAULT 0,
-            lastweekvouches INTEGER DEFAULT 0
-        )`);
+        // Create tables if they don't exist
+        client.db.serialize(() => {
+            // Existing vouches table
+            client.db.run(`CREATE TABLE IF NOT EXISTS vouches (
+                user_id TEXT PRIMARY KEY,
+                vouches INTEGER DEFAULT 0,
+                negvouches INTEGER DEFAULT 0,
+                reasons TEXT DEFAULT '[]',
+                todayvouches INTEGER DEFAULT 0,
+                last3daysvouches INTEGER DEFAULT 0,
+                lastweekvouches INTEGER DEFAULT 0
+            )`);
+
+            // New invites table
+            client.db.run(`CREATE TABLE IF NOT EXISTS invites (
+                user_id TEXT PRIMARY KEY,
+                total_invites INTEGER DEFAULT 0,
+                regular_invites INTEGER DEFAULT 0,
+                leaves INTEGER DEFAULT 0,
+                bonus_invites INTEGER DEFAULT 0,
+                fake_invites INTEGER DEFAULT 0,
+                invite_codes TEXT DEFAULT '[]'
+            )`);
+        });
+    }
+});
+
+// Cache for storing guild invites
+const guildInvites = new Map();
+
+// Event to cache invites when bot starts
+client.on('ready', async () => {
+    console.log(`Logged in as ${client.user.tag}`);
+    client.user.setActivity(`${config.helpPrefix}help │ 𝗡𝗘𝗫𝗨𝗦 𝗚𝟯𝗡`);
+
+    // Cache all guild invites
+    client.guilds.cache.forEach(async (guild) => {
+        try {
+            const firstInvites = await guild.invites.fetch();
+            guildInvites.set(guild.id, new Map(firstInvites.map((invite) => [invite.code, invite.uses])));
+        } catch (err) {
+            console.error(`Error caching invites for guild ${guild.id}:`, err);
+        }
+    });
+});
+
+// Event to update invite cache when new invite is created
+client.on('inviteCreate', async (invite) => {
+    try {
+        const invites = guildInvites.get(invite.guild.id);
+        invites.set(invite.code, invite.uses);
+        guildInvites.set(invite.guild.id, invites);
+    } catch (err) {
+        console.error('Error handling new invite:', err);
+    }
+});
+
+// Event to track who used an invite
+client.on('guildMemberAdd', async (member) => {
+    try {
+        const cachedInvites = guildInvites.get(member.guild.id);
+        const newInvites = await member.guild.invites.fetch();
+
+        const usedInvite = newInvites.find(invite => {
+            const cachedUses = cachedInvites.get(invite.code) || 0;
+            return invite.uses > cachedUses;
+        });
+
+        if (usedInvite) {
+            const inviter = await client.users.fetch(usedInvite.inviter.id);
+
+            // Update database
+            client.db.get('SELECT * FROM invites WHERE user_id = ?', [inviter.id], (err, row) => {
+                if (err) {
+                    console.error('Error checking inviter:', err);
+                    return;
+                }
+
+                if (!row) {
+                    // Create new record
+                    client.db.run('INSERT INTO invites (user_id, total_invites, regular_invites, invite_codes) VALUES (?, 1, 1, ?)',
+                        [inviter.id, JSON.stringify([usedInvite.code])]);
+                } else {
+                    // Update existing record
+                    const inviteCodes = JSON.parse(row.invite_codes);
+                    inviteCodes.push(usedInvite.code);
+
+                    client.db.run('UPDATE invites SET total_invites = total_invites + 1, regular_invites = regular_invites + 1, invite_codes = ? WHERE user_id = ?',
+                        [JSON.stringify(inviteCodes), inviter.id]);
+                }
+            });
+        }
+
+        // Update the cache with new uses
+        guildInvites.set(member.guild.id, new Map(newInvites.map((invite) => [invite.code, invite.uses])));
+    } catch (err) {
+        console.error('Error handling member join:', err);
     }
 });
 
@@ -204,12 +294,6 @@ async function handleTicketCreation(interaction, category) {
     }
 }
 
-// Event handlers
-client.once('ready', () => {
-    console.log(`Logged in as ${client.user.tag}`);
-    client.user.setActivity(`${config.helpPrefix}help │ 𝗡𝗘𝗫𝗨𝗦 𝗚𝟯𝗡`);
-});
-
 // Handle interactions (buttons and dropdowns)
 client.on('interactionCreate', async interaction => {
     if (interaction.isSelectMenu() && interaction.customId === 'ticket_menu') {
@@ -222,7 +306,6 @@ client.on('interactionCreate', async interaction => {
         setTimeout(() => channel.delete(), 5000);
     }
 });
-
 
 // Log webhook messages
 const webhookLogFile = 'verified.txt';
