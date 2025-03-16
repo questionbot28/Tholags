@@ -1,6 +1,6 @@
 const { MessageEmbed } = require('discord.js');
 const fs = require('fs');
-const config = require('../../config.json'); // Adjust the path based on your project structure
+const config = require('../../config.json');
 
 module.exports = {
   name: 'startdrop',
@@ -13,12 +13,12 @@ module.exports = {
       const channelErrorEmbed = new MessageEmbed()
         .setColor('#FF0000')
         .setTitle('Error')
-        .setDescription(`This command can only be used in the <#${allowedChannelId}> channel.`);
-      return message.channel.send(channelErrorEmbed);
+        .setDescription(`This command can only be used in <#${allowedChannelId}>.`);
+      return message.channel.send({ embeds: [channelErrorEmbed] });
     }
 
     // Check if the user has the required role to use the command
-    const staffRoleIds = config.staffRoleIds; // Replace with your actual staff role IDs
+    const staffRoleIds = config.staffRoleIds;
     const hasStaffRole = message.member.roles.cache.some(role => staffRoleIds.includes(role.id));
 
     if (!hasStaffRole) {
@@ -27,7 +27,7 @@ module.exports = {
         .setTitle('Error')
         .setDescription('You do not have permission to use this command.');
 
-      return message.channel.send(roleErrorEmbed);
+      return message.channel.send({ embeds: [roleErrorEmbed] });
     }
 
     // Check if drop session is already active
@@ -37,14 +37,42 @@ module.exports = {
         .setTitle('Error')
         .setDescription('A drop session is already in progress.');
 
-      return message.channel.send(errorEmbed);
+      return message.channel.send({ embeds: [errorEmbed] });
     }
 
     // Check cooldown and total drop limit
-    const cooldownFile = './cooldown.json'; // Path to the cooldown file
-    const cooldownData = JSON.parse(fs.readFileSync(cooldownFile, 'utf8'));
+    let cooldownData;
+    const cooldownFile = './cooldown.json';
+    
+    try {
+      if (!fs.existsSync(cooldownFile)) {
+        cooldownData = {
+          startdrop: 0,
+          totalDrops: 0,
+          lastReset: Date.now()
+        };
+        fs.writeFileSync(cooldownFile, JSON.stringify(cooldownData, null, 2));
+      } else {
+        cooldownData = JSON.parse(fs.readFileSync(cooldownFile, 'utf8'));
+      }
+    } catch (error) {
+      console.error('Error reading/creating cooldown file:', error);
+      cooldownData = {
+        startdrop: 0,
+        totalDrops: 0,
+        lastReset: Date.now()
+      };
+      fs.writeFileSync(cooldownFile, JSON.stringify(cooldownData, null, 2));
+    }
 
-    const cooldownDuration = 2 * 60 * 60 * 1000; // 24 hours in milliseconds
+    // Reset totalDrops if 24 hours have passed since lastReset
+    const resetDuration = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    if (Date.now() - cooldownData.lastReset > resetDuration) {
+      cooldownData.totalDrops = 0;
+      cooldownData.lastReset = Date.now();
+    }
+
+    const cooldownDuration = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
     const elapsedTime = Date.now() - cooldownData.startdrop;
 
     if (cooldownData.startdrop && elapsedTime < cooldownDuration) {
@@ -57,17 +85,17 @@ module.exports = {
         .setTitle('Error')
         .setDescription(`Cooldown in effect. Please wait for ${hours} hours and ${minutes} minutes before starting another drop session.`);
 
-      return message.channel.send(cooldownErrorEmbed);
+      return message.channel.send({ embeds: [cooldownErrorEmbed] });
     }
 
-    // Check total drop limit
+    // Check total drop limit (4 drops per 24-hour period)
     if (cooldownData.totalDrops >= 3) {
       const limitErrorEmbed = new MessageEmbed()
         .setColor('#FF0000')
         .setTitle('Error')
         .setDescription('The maximum limit of 4 drops has been reached for the 24-hour period.');
 
-      return message.channel.send(limitErrorEmbed);
+      return message.channel.send({ embeds: [limitErrorEmbed] });
     }
 
     // Update dropSessionActive status to true in config.json
@@ -79,16 +107,18 @@ module.exports = {
     cooldownData.totalDrops += 1;
     fs.writeFileSync(cooldownFile, JSON.stringify(cooldownData, null, 2));
 
-    // Continue with your logic for starting a drop session
-    // ...
-
     // Send success message
     const successEmbed = new MessageEmbed()
       .setColor('#00FF00')
-      .setTitle('Drop Started!')
-      .setDescription('A new drop session has started! Hurry up and get the drops!!');
+      .setTitle('🎁 Drop Started!')
+      .setDescription('A new drop session has started! Use `.drop <tier>` to claim accounts!')
+      .addField('Available Tiers', 'basic (b), premium (p), extreme (e), free (f), cookie (c)')
+      .addField('Example', '`.drop basic` or `.drop b`')
+      .setFooter({ text: 'Hurry! First come, first served!' });
 
-    message.channel.send('<@&1200669551168340068>');
-    message.channel.send(successEmbed);
+    // Mention the drop role if it exists in config
+    const dropRoleId = config.dropRoleId || '1200669551168340068';
+    message.channel.send(`<@&${dropRoleId}>`);
+    message.channel.send({ embeds: [successEmbed] });
   }
 };

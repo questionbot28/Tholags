@@ -1,13 +1,19 @@
-// commands/managevouch.js
+// commands/vouch/managevouch.js
 const Discord = require('discord.js');
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('vouches.db');
+const config = require('../../config.json');
 
 module.exports = {
     name: 'managevouch',
     description: 'Manage vouches for a user.',
    usage: 'managevouch <@user> <-number / +number>',
     execute(message, args, prefix) {
+        // Check if the command is used in the specified vouch channel
+        if (message.channel.id !== config.vouchChannelId) {
+            return message.channel.send(`This command can only be used in <#${config.vouchChannelId}>.`);
+        }
+
         if (!message.mentions.users.size || args.length < 2) {
             return message.channel.send(`Usage: ${prefix}managevouch @user {integer(+/-)}`);
         }

@@ -1,4 +1,4 @@
-// commands/ouch/ouch.js
+// commands/negvouch/ouch.js
 const Discord = require('discord.js');
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('vouches.db');
