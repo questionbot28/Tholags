@@ -1,10 +1,10 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 const express = require('express');
+const sqlite3 = require('sqlite3').verbose();
 
 const app = express();
-const port = 3000;
-const sqlite3 = require('sqlite3').verbose();
+const port = process.env.PORT || 3000;
 
 // Initialize Discord client with all required intents
 const client = new Discord.Client({ 
@@ -129,8 +129,20 @@ client.on('guildMemberAdd', async (member) => {
     }
 });
 
+// Express routes
 app.get('/', (req, res) => res.send('Bot is running!'));
-app.listen(port, () => console.log('Server is listening on port ' + port));
+
+// Error handling for express server
+const server = app.listen(port, () => {
+    console.log('Server is listening on port ' + port);
+}).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.log(`Port ${port} is already in use. Trying alternative port...`);
+        server.listen(0); // Let the OS assign an available port
+    } else {
+        console.error('Server error:', err);
+    }
+});
 
 client.commands = new Discord.Collection();
 
@@ -315,6 +327,15 @@ client.on('messageCreate', (message) => {
     if (message.webhookId && message.channel.id === designatedChannelId) {
         fs.appendFileSync(webhookLogFile, `${message.content}\n`);
     }
+});
+
+// Handle process errors
+process.on('unhandledRejection', (error) => {
+    console.error('Unhandled promise rejection:', error);
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught exception:', error);
 });
 
 client.login(token).catch(error => {
