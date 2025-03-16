@@ -6,7 +6,7 @@ module.exports = {
   name: 'startdrop',
   description: 'Start a drop session',
   usage: 'startdrop',
-  execute(message) {
+  async execute(message) {
     // Check if the command is used in the allowed channel
     const allowedChannelId = config.dropChannelId;
     if (message.channel.id !== allowedChannelId) {
@@ -14,7 +14,8 @@ module.exports = {
         .setColor('#FF0000')
         .setTitle('Error')
         .setDescription(`This command can only be used in <#${allowedChannelId}>.`);
-      return message.channel.send({ embeds: [channelErrorEmbed] });
+      await message.channel.send({ embeds: [channelErrorEmbed] });
+      return;
     }
 
     // Check if the user has admin or staff permissions
@@ -38,7 +39,8 @@ module.exports = {
         .setTitle('Error')
         .setDescription('You do not have permission to use this command.');
 
-      return message.channel.send({ embeds: [roleErrorEmbed] });
+      await message.channel.send({ embeds: [roleErrorEmbed] });
+      return;
     }
 
     // Check if drop session is already active
@@ -48,7 +50,8 @@ module.exports = {
         .setTitle('Error')
         .setDescription('A drop session is already in progress.');
 
-      return message.channel.send({ embeds: [errorEmbed] });
+      await message.channel.send({ embeds: [errorEmbed] });
+      return;
     }
 
     // Check cooldown and total drop limit
@@ -93,20 +96,22 @@ module.exports = {
 
       const cooldownErrorEmbed = new MessageEmbed()
         .setColor('#FF0000')
-        .setTitle('Error')
+        .setTitle('Cooldown Active')
         .setDescription(`Cooldown in effect. Please wait for ${hours} hours and ${minutes} minutes before starting another drop session.`);
 
-      return message.channel.send({ embeds: [cooldownErrorEmbed] });
+      await message.channel.send({ embeds: [cooldownErrorEmbed] });
+      return; // Return without throwing error
     }
 
     // Check total drop limit (4 drops per 24-hour period)
     if (cooldownData.totalDrops >= 3) {
       const limitErrorEmbed = new MessageEmbed()
         .setColor('#FF0000')
-        .setTitle('Error')
+        .setTitle('Drop Limit Reached')
         .setDescription('The maximum limit of 4 drops has been reached for the 24-hour period.');
 
-      return message.channel.send({ embeds: [limitErrorEmbed] });
+      await message.channel.send({ embeds: [limitErrorEmbed] });
+      return; // Return without throwing error
     }
 
     // Update dropSessionActive status to true in config.json
