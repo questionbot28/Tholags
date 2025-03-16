@@ -6,12 +6,15 @@ const app = express();
 const port = 3000;
 const sqlite3 = require('sqlite3').verbose();
 
-// Initialize Discord client with proper intents
+// Initialize Discord client with all required intents
 const client = new Discord.Client({ 
     intents: [
         Discord.Intents.FLAGS.GUILDS,
         Discord.Intents.FLAGS.GUILD_MESSAGES,
-        Discord.Intents.FLAGS.GUILD_MEMBERS
+        Discord.Intents.FLAGS.GUILD_MEMBERS,
+        Discord.Intents.FLAGS.GUILD_INTEGRATIONS,
+        Discord.Intents.FLAGS.GUILD_WEBHOOKS,
+        Discord.Intents.FLAGS.GUILD_PRESENCES
     ] 
 });
 
