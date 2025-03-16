@@ -11,19 +11,19 @@
   "cookiePrefix": "c.",
   "genChannel": "1155866602282160180",
   "genCooldown": 1,
-  "fgenChannel": "1155866602282160180",
+  "fgenChannel": "1348251265322450987",
   "fgenCooldown": 1,
-  "bgenChannel": "1155866602282160180",
+  "bgenChannel": "1348251265322450991",
   "bgenCooldown": 1,
-  "basichannelid": "1155866602282160180",
-  "egenChannel": "1200663201407311981",
+  "basichannelid": "1348251265322450988",
+  "egenChannel": "1348251265322450992",
   "egenCooldownHours": 24,
   "providorRole": "1207005262041321532",
   "extremechannelId": "1207005217623642125",
   "extremePayoutRoleId": "1203401025680048138",
   "providerRoleId": "1207005262041321532",
   "cgenChannel": "1203384406815809597",
-  "welcomeChannelId": "1155866532807716864",
+  "welcomeChannelId": "1348251264764350495",
   "gif": "https://media.discordapp.net/attachments/1188677532426457118/1197818799597031518/350kb.gif?ex=65d85630&is=65c5e130&hm=4bfa1ac6cd8ccc667c95ea05ac82afaac35ba96c645af4a4dd914def18d84cc0&width=585&height=75&",
   "color": {
     "green": "0x57F287",
@@ -106,8 +106,9 @@
     "1200663200383901736"
   ],
   "ticketcategories": [
-    "1350472828998123540",
-    "1350472829715353790",
-    "1350472831070113803"
+    "1348251266572095518",
+    "1348251266572095518",
+    "1348251266572095518",
+    "1348251266572095518"
   ]
 }
