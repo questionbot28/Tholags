@@ -134,7 +134,7 @@ module.exports = {
 
     // Mention the drop role if it exists in config
     const dropRoleId = config.dropRoleId || '1200669551168340068';
-    message.channel.send(`<@&${dropRoleId}>`);
-    message.channel.send({ embeds: [successEmbed] });
+    await message.channel.send(`<@&${dropRoleId}>`);
+    await message.channel.send({ embeds: [successEmbed] });
   }
 };

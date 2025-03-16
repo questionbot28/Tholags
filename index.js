@@ -304,7 +304,18 @@ client.on('messageCreate', async (message) => {
     try {
         const command = client.commands.get(commandName);
         if (command.prefix === usedPrefix) {
-            await command.execute(message, args, usedPrefix);
+            // Add special handling for startdrop command
+            if (commandName === 'startdrop') {
+                try {
+                    await command.execute(message, args, usedPrefix);
+                } catch (cmdError) {
+                    console.error('Error executing startdrop command:', cmdError);
+                    // Don't show error message for startdrop as it handles its own errors
+                }
+            } else {
+                // Normal handling for other commands
+                await command.execute(message, args, usedPrefix);
+            }
         }
     } catch (error) {
         console.error('Error executing command:', error);
