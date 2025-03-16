@@ -5,7 +5,7 @@ const db = new sqlite3.Database('vouches.db');
 const config = require('../../config.json');
 
 module.exports = {
-    name: 'vouch',
+    name: 'negvouch',
     description: 'Negative vouch a user.',
     usage: 'negvouch <@user> {reason}',
     execute(message, args, prefix) {
@@ -15,7 +15,7 @@ module.exports = {
         }
 
         if (!message.mentions.users.size) {
-            return message.channel.send(`Usage: ${prefix}vouch @user {reason}`);
+            return message.channel.send(`Usage: ${prefix}negvouch @user {reason}`);
         }
 
         const mentionedUser = message.mentions.users.first();
