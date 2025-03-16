@@ -122,7 +122,7 @@ module.exports = {
     const successEmbed = new MessageEmbed()
       .setColor('#00FF00')
       .setTitle('🎁 Drop Started!')
-      .setDescription('A new drop session has started! Use `.drop <tier>` to claim accounts!')
+      .setDescription('A new drop session has started! Hurry up and get the drops!!')
       .addField('Available Tiers', 'basic (b), premium (p), extreme (e), free (f), cookie (c)')
       .addField('Example', '`.drop basic` or `.drop b`')
       .setFooter({ text: 'Hurry! First come, first served!' });

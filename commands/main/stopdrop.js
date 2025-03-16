@@ -84,8 +84,8 @@ module.exports = {
     const successEmbed = new MessageEmbed()
       .setColor('#00FF00')
       .setTitle('🛑 Drop Stopped')
-      .setDescription('The drop session has ended.')
-      .addField('Cooldown', 'A 2-hour cooldown is now in effect before another drop can be started.')
+      .setDescription('The drop session has stopped.')
+      .addField('Cooldown', 'Limited to 4 drop sessions per 24 hours with 2-hour cooldown between drops.')
       .setFooter({ text: 'Thank you for participating!' });
 
     message.channel.send({ embeds: [successEmbed] });
