@@ -217,7 +217,7 @@ client.on('guildMemberRemove', async (member) => {
 app.get('/', (req, res) => res.send('Bot is running!'));
 
 // Error handling for express server
-const server = app.listen(port, () => {
+const server = app.listen(port, '0.0.0.0', () => {
     console.log('Server is listening on port ' + port);
 }).on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
@@ -230,8 +230,14 @@ const server = app.listen(port, () => {
 
 client.commands = new Discord.Collection();
 
+require('dotenv').config();
 const config = require('./config.json');
 const token = process.env.DISCORD_BOT_TOKEN || config.token;
+
+if (!token) {
+    console.error('No Discord bot token provided! Please set DISCORD_BOT_TOKEN environment variable.');
+    process.exit(1);
+}
 
 if (!token) {
     console.error('No Discord bot token provided! Please set the DISCORD_BOT_TOKEN environment variable.');
