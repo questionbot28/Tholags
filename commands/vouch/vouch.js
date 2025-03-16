@@ -20,15 +20,8 @@ module.exports = {
             return message.channel.send(`Usage: ${prefix}vouch @user {reason}`);
         }
 
-        // Check if the mentioned user has one of the specified staff roles
-        const staffRoleIds = config.staffRoleIds;
-        const mentionedMember = message.guild.members.cache.get(mentionedUser.id);
-
-        if (!mentionedMember.roles.cache.some(role => staffRoleIds.includes(role.id))) {
-            return message.channel.send('You can only vouch for users with staff roles.');
-        }
-
-        const reason = args.slice(2).join(' ');
+        // Allow vouching for any user, no staff role check
+        const reason = args.slice(1).join(' ');
 
         db.run(`INSERT OR IGNORE INTO vouches (user_id) VALUES (?)`, [mentionedUser.id]);
         db.run(`UPDATE vouches SET vouches = vouches + 1, todayvouches = todayvouches + 1, last3daysvouches = last3daysvouches + 1, lastweekvouches = lastweekvouches + 1 WHERE user_id = ?`, [mentionedUser.id]);

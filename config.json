@@ -1,6 +1,6 @@
 {
   "vouchPrefix": "+",
-  "negVouchPrefix": "-v",
+  "negVouchPrefix": "-",
   "mainPrefix": ".",
   "helpPrefix": "=",
   "extremePrefix": "e.",

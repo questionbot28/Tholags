@@ -239,11 +239,6 @@ if (!token) {
     process.exit(1);
 }
 
-if (!token) {
-    console.error('No Discord bot token provided! Please set the DISCORD_BOT_TOKEN environment variable.');
-    process.exit(1);
-}
-
 // Load commands
 const commandFolders = fs.readdirSync('./commands');
 for (const folder of commandFolders) {
