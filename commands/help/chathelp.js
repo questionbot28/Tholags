@@ -23,7 +23,7 @@ module.exports = {
           value: '• Be specific in your questions for better answers\n• The AI maintains context in DM conversations\n• You can ask follow-up questions in DMs and the AI will remember previous messages'
         }
       )
-      .setFooter({ text: 'Powered by Google Gemini AI' });
+      .setFooter({ text: 'Powered by Google Gemini 2.0 Flash' });
 
     message.channel.send({ embeds: [embed] });
   }

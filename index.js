@@ -256,6 +256,19 @@ for (const folder of commandFolders) {
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
+    // First check for natural conversation
+    try {
+        const naturalChat = require('./commands/main/naturalchat');
+        const handledByNaturalChat = await naturalChat.processMessage(message, client);
+        
+        // If natural chat handled the message, we're done
+        if (handledByNaturalChat) return;
+    } catch (naturalChatError) {
+        console.error('Error in natural chat processing:', naturalChatError);
+        // Continue with command processing even if natural chat fails
+    }
+
+    // Continue with command processing if the message wasn't handled by natural chat
     const prefixes = [
         config.vouchPrefix,
         config.negVouchPrefix,

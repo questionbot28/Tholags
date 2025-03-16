@@ -38,8 +38,8 @@ module.exports = {
       // Initialize the Gemini API with the provided key
       const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
       
-      // Configure the model - Gemini-Pro is good for chat
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      // Configure the model
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
       // Get the full message from args
       const userMessage = args.join(' ');
@@ -73,7 +73,7 @@ module.exports = {
         .setColor('#00FF00')
         .setTitle(`Reply to ${message.author.username}`)
         .setDescription(response)
-        .setFooter({ text: 'Powered by Google Gemini' });
+        .setFooter({ text: 'Powered by Google Gemini 2.0 Flash' });
 
       await processingMessage.edit({ embeds: [responseEmbed] });
       

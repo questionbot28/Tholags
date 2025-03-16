@@ -32,6 +32,11 @@ module.exports = {
                 `\`\`+vouch @user\`\`: Add a positive vouch for a user
 \`\`-vouch @user\`\`: Add a negative vouch for a user
 \`\`+profile @user\`\`: View a user's vouch profile`)
+            .addField('AI Chat System', 
+                `\`\`.chat <message>\`\`: Chat with the AI in the current channel
+\`\`.chatdm <message>\`\`: Start a private chat with the AI in DMs
+\`\`=chathelp\`\`: Show detailed help for the AI chat features
+\`\`=naturalchathelp\`\`: Learn how to talk to the bot naturally without commands`)
             .addField('Help Commands', 
                 `\`\`=help\`\`: Display this command list
 \`\`=cookie\`\`: Show cookie help
