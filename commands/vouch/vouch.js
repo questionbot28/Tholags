@@ -43,55 +43,46 @@ module.exports = {
                 return;
             }
 
-            // Assuming promoRoleID is defined somewhere in your code
-            const promoRoleID = '1200663200358727712'; // Replace with the actual promotion role ID
+            // Check vouch count and assign auto role based on tiers
+            const autoRoleTiers = config.autoRoleTiers;
 
-            // Check if the user has the promotion role
-            if (message.guild.members.cache.get(mentionedUser.id).roles.cache.has(promoRoleID)) {
+            for (const tier of autoRoleTiers) {
+                if (row.vouches >= tier.threshold) {
+                    const autoRole = message.guild.roles.cache.get(tier.roleID);
 
-                // Check vouch count and assign auto role based on tiers
-                const autoRoleTiers = config.autoRoleTiers;
+                    if (autoRole) {
+                        // Check if the member already has the auto role
+                        if (!message.guild.members.cache.get(mentionedUser.id).roles.cache.has(autoRole.id)) {
+                            try {
+                                await message.guild.members.cache.get(mentionedUser.id).roles.add(autoRole);
+                                console.log(`Auto role (${autoRole.name}) assigned to ${mentionedUser.tag} in ${message.guild.name} (${row.vouches} vouches).`);
 
-                for (const tier of autoRoleTiers) {
-                    if (row.vouches >= tier.threshold) {
-                        const autoRole = message.guild.roles.cache.get(tier.roleID);
+                                // Send an embed to the promotion channel
+                                const promotionChannel = message.guild.channels.cache.get(config.promotionChannelId);
 
-                        if (autoRole) {
-                            // Check if the member already has the auto role
-                            if (!message.guild.members.cache.get(mentionedUser.id).roles.cache.has(autoRole.id)) {
-                                try {
-                                    await message.guild.members.cache.get(mentionedUser.id).roles.add(autoRole);
-                                    console.log(`Auto role (${autoRole.name}) assigned to ${mentionedUser.tag} in ${message.guild.name} (${row.vouches} vouches).`);
+                                if (promotionChannel instanceof Discord.TextChannel) {
+                                    const embed = new Discord.MessageEmbed()
+                                        .setColor('#00FF00') // Green color for success
+                                        .setTitle('User Promotion')
+                                        .setDescription(`Congratulations to ${mentionedUser.tag} for reaching ${tier.threshold} vouches!`)
+                                        .addField('New Role', autoRole.name, true)
+                                        .addField('Vouch Count', row.vouches, true)
+                                        .setTimestamp();
 
-                                    // Send an embed to the promotion channel
-                                    const promotionChannel = message.guild.channels.cache.get(config.promotionChannelId);
-
-                                    if (promotionChannel instanceof Discord.TextChannel) {
-                                        const embed = new Discord.MessageEmbed()
-                                            .setColor('#00FF00') // Green color for success
-                                            .setTitle('User Promotion')
-                                            .setDescription(`Congratulations to ${mentionedUser.tag} for reaching ${tier.threshold} vouches!`)
-                                            .addField('New Role', autoRole.name, true)
-                                            .addField('Vouch Count', row.vouches, true)
-                                            .setTimestamp();
-
-                                        promotionChannel.send(embed);
-                                    } else {
-                                        console.error(`Promotion channel not found. Check your configuration.`);
-                                    }
-                                } catch (error) {
-                                    console.error(`Error assigning auto role: ${error.message}`);
+                                    promotionChannel.send(embed);
+                                } else {
+                                    console.error(`Promotion channel not found. Check your configuration.`);
                                 }
-                            } else {
-                                console.log(`${mentionedUser.tag} already has the auto role (${autoRole.name}).`);
+                            } catch (error) {
+                                console.error(`Error assigning auto role: ${error.message}`);
                             }
                         } else {
-                            console.error(`Auto role (${tier.roleID}) not found. Check your configuration.`);
+                            console.log(`${mentionedUser.tag} already has the auto role (${autoRole.name}).`);
                         }
+                    } else {
+                        console.error(`Auto role (${tier.roleID}) not found. Check your configuration.`);
                     }
                 }
-            } else {
-                console.log(`${mentionedUser.tag} does not have the promotion role. Skipping auto role check.`);
             }
         });
     },
