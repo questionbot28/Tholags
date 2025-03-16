@@ -7,7 +7,7 @@ module.exports = {
   description: 'Display the server stock.',
   usage: 'stock',
 
-  execute: async (message, usedPrefix) => {
+  execute: async (message, args) => {
     try {
       const freeStock = await readDirectory(`${__dirname}/../../fstock/`);
       const premiumStock = await readDirectory(`${__dirname}/../../stock/`);
@@ -22,10 +22,10 @@ module.exports = {
         .addField('BOOSTER STOCK', boosterStock.join('\n') || 'No services', true)
         .addField('BASIC STOCK', basicStock.join('\n') || 'No services', true);
 
-      message.channel.send({ embed: embed });
+      await message.channel.send({ embeds: [embed] });
     } catch (error) {
-      console.error(error);
-      message.channel.send('An error occurred while processing the stock command.');
+      console.error('Error in stock command:', error);
+      await message.channel.send('An error occurred while processing the stock command.');
     }
   },
 };
@@ -39,13 +39,15 @@ async function readDirectory(directoryPath) {
       if (file.endsWith('.txt')) {
         const acc = await fs.readFile(`${directoryPath}/${file}`, 'utf-8');
         const lines = acc.split(/\r?\n/).filter(Boolean);
-        stock.push(file.replace('.txt', ''));
+        if (lines.length > 0) {  // Only add if file has content
+          stock.push(`${file.replace('.txt', '')} (${lines.length})`);
+        }
       }
     }
 
     return stock;
   } catch (error) {
-    console.error(`Unable to read directory ${directoryPath}: ${error}`);
+    console.error(`Unable to read directory ${directoryPath}:`, error);
     return [];
   }
 }

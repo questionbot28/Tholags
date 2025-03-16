@@ -14,8 +14,11 @@ const client = new Discord.Client({
         Discord.Intents.FLAGS.GUILD_MEMBERS,
         Discord.Intents.FLAGS.GUILD_INTEGRATIONS,
         Discord.Intents.FLAGS.GUILD_WEBHOOKS,
-        Discord.Intents.FLAGS.GUILD_PRESENCES
-    ] 
+        Discord.Intents.FLAGS.GUILD_PRESENCES,
+        Discord.Intents.FLAGS.DIRECT_MESSAGES,
+        Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS
+    ],
+    partials: ['CHANNEL', 'MESSAGE', 'REACTION'] 
 });
 
 // Database setup
@@ -36,7 +39,7 @@ const db = new sqlite3.Database('vouches.db', (err) => {
     }
 });
 
-app.get('/', (req, res) => res.send('Online Yo boi!'));
+app.get('/', (req, res) => res.send('Bot is running!'));
 app.listen(port, () => console.log('Server is listening on port ' + port));
 
 client.commands = new Discord.Collection();
@@ -61,6 +64,78 @@ for (const folder of commandFolders) {
         client.commands.set(command.name, command);
     }
 }
+
+// Handle commands
+client.on('messageCreate', async (message) => {
+    if (message.author.bot) return;
+
+    const prefixes = [
+        config.vouchPrefix,
+        config.negVouchPrefix,
+        config.mainPrefix,
+        config.helpPrefix,
+        config.basicPrefix,
+        config.freePrefix,
+        config.boostPrefix,
+        config.premiumPrefix,
+        config.cookiePrefix,
+        config.extremePrefix
+    ];
+
+    let usedPrefix = null;
+    for (const prefix of prefixes) {
+        if (message.content.startsWith(prefix)) {
+            usedPrefix = prefix;
+            break;
+        }
+    }
+
+    if (!usedPrefix) return;
+
+    const args = message.content.slice(usedPrefix.length).trim().split(/ +/);
+    const commandName = args.shift().toLowerCase();
+
+    if (!client.commands.has(commandName)) {
+        if (config.command.notfound_message) {
+            await message.channel.send({
+                embeds: [
+                    new Discord.MessageEmbed()
+                        .setColor(config.color.red)
+                        .setTitle('Unknown command :(')
+                        .setDescription(`Sorry, but I cannot find the \`${commandName}\` command!`)
+                        .setFooter({ 
+                            text: message.author.tag, 
+                            iconURL: message.author.displayAvatarURL({ dynamic: true }) 
+                        })
+                        .setTimestamp()
+                ]
+            });
+        }
+        return;
+    }
+
+    try {
+        const command = client.commands.get(commandName);
+        if (command.prefix === usedPrefix) {
+            await command.execute(message, args, usedPrefix);
+        }
+    } catch (error) {
+        console.error('Error executing command:', error);
+        await message.channel.send({
+            embeds: [
+                new Discord.MessageEmbed()
+                    .setColor(config.color.red)
+                    .setTitle('Error')
+                    .setDescription('There was an error executing that command!')
+                    .setFooter({ 
+                        text: message.author.tag, 
+                        iconURL: message.author.displayAvatarURL({ dynamic: true }) 
+                    })
+                    .setTimestamp()
+            ]
+        });
+    }
+});
 
 // Handle ticket creation
 async function handleTicketCreation(interaction, category) {
@@ -148,56 +223,6 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
-// Handle commands
-client.on('messageCreate', async (message) => {
-    if (message.author.bot) return;
-
-    const prefixes = [
-        config.vouchPrefix,
-        config.negVouchPrefix,
-        config.mainPrefix,
-        config.helpPrefix
-    ];
-
-    let usedPrefix = null;
-    for (const prefix of prefixes) {
-        if (message.content.startsWith(prefix)) {
-            usedPrefix = prefix;
-            break;
-        }
-    }
-
-    if (!usedPrefix) return;
-
-    const args = message.content.slice(usedPrefix.length).trim().split(/ +/);
-    const command = args.shift().toLowerCase();
-
-    if (!client.commands.has(command)) {
-        if (config.command.notfound_message) {
-            return message.channel.send({
-                embeds: [
-                    new Discord.MessageEmbed()
-                        .setColor(config.color.red)
-                        .setTitle('Unknown command :(')
-                        .setDescription(`Sorry, but I cannot find the \`${command}\` command!`)
-                        .setFooter({ text: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
-                        .setTimestamp()
-                ]
-            });
-        }
-        return;
-    }
-
-    try {
-        const commandObject = client.commands.get(command);
-        if (commandObject && message.content.startsWith(commandObject.prefix)) {
-            await commandObject.execute(message, args, commandObject.prefix, config.vouchPrefix);
-        }
-    } catch (error) {
-        console.error('Error executing command:', error);
-        message.reply('There was an error executing that command!');
-    }
-});
 
 // Log webhook messages
 const webhookLogFile = 'verified.txt';
