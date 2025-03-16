@@ -23,22 +23,28 @@ module.exports = {
                     .setPlaceholder('Select ticket category')
                     .addOptions([
                         {
-                            label: 'General Support',
-                            description: 'Get help with general questions',
-                            value: 'General Support',
+                            label: 'Event',
+                            description: 'Create a ticket for event-related inquiries',
+                            value: 'Event',
+                            emoji: '🎉'
+                        },
+                        {
+                            label: 'Reward',
+                            description: 'Questions about rewards and prizes',
+                            value: 'Reward',
+                            emoji: '🎁'
+                        },
+                        {
+                            label: 'Code',
+                            description: 'Issues with codes or redemption',
+                            value: 'Code',
+                            emoji: '🔑'
+                        },
+                        {
+                            label: 'Support',
+                            description: 'General support and assistance',
+                            value: 'Support',
                             emoji: '❓'
-                        },
-                        {
-                            label: 'Account Issues',
-                            description: 'Report issues with accounts',
-                            value: 'Account Issues',
-                            emoji: '👤'
-                        },
-                        {
-                            label: 'Generator Issues',
-                            description: 'Report issues with the generator',
-                            value: 'Generator Issues',
-                            emoji: '⚙️'
                         }
                     ])
             );
