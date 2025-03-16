@@ -13,7 +13,7 @@ module.exports = {
             .setColor('#0099ff')
             .setTitle('🎫 Create a Support Ticket')
             .setDescription('Please select a category from the dropdown menu below to create a ticket.')
-            .setFooter({ text: 'NEXUS GƧN Support' });
+            .setFooter({ text: 'WRECKED G3N Support' });
 
         // Create selection menu
         const row = new Discord.MessageActionRow()

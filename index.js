@@ -7,7 +7,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Initialize Discord client with all required intents
-const client = new Discord.Client({ 
+const client = new Discord.Client({
     intents: [
         Discord.Intents.FLAGS.GUILDS,
         Discord.Intents.FLAGS.GUILD_MESSAGES,
@@ -20,7 +20,7 @@ const client = new Discord.Client({
         Discord.Intents.FLAGS.GUILD_INVITES,
         Discord.Intents.FLAGS.GUILD_MEMBERS
     ],
-    partials: ['CHANNEL', 'MESSAGE', 'REACTION'] 
+    partials: ['CHANNEL', 'MESSAGE', 'REACTION']
 });
 
 // Attach database to client before connecting
@@ -62,7 +62,21 @@ const guildInvites = new Map();
 // Event to cache invites when bot starts
 client.on('ready', async () => {
     console.log(`Logged in as ${client.user.tag}`);
-    client.user.setActivity(`${config.helpPrefix}help │ 𝗡𝗘𝗫𝗨𝗦 𝗚𝟯𝗡`);
+    client.user.setActivity(`${config.helpPrefix}help │ 𝗪𝗥𝗘𝗖𝗞𝗘𝗗 𝗚𝟯𝗡`);
+
+    // Verify welcome channel
+    const welcomeChannel = client.channels.cache.get(config.welcomeChannelId);
+    if (welcomeChannel) {
+        console.log(`Welcome channel found: #${welcomeChannel.name}`);
+        const permissions = welcomeChannel.permissionsFor(client.user);
+        if (permissions.has('SEND_MESSAGES') && permissions.has('VIEW_CHANNEL')) {
+            console.log('Bot has correct permissions for welcome channel');
+        } else {
+            console.warn('Bot is missing required permissions in welcome channel');
+        }
+    } else {
+        console.error(`Welcome channel not found with ID: ${config.welcomeChannelId}`);
+    }
 
     // Cache all guild invites
     client.guilds.cache.forEach(async (guild) => {
@@ -89,6 +103,12 @@ client.on('inviteCreate', async (invite) => {
 // Event to track who used an invite
 client.on('guildMemberAdd', async (member) => {
     try {
+        const welcomeChannel = member.guild.channels.cache.get(config.welcomeChannelId);
+        if (!welcomeChannel) {
+            console.error(`Welcome channel ${config.welcomeChannelId} not found`);
+            return;
+        }
+
         const cachedInvites = guildInvites.get(member.guild.id);
         const newInvites = await member.guild.invites.fetch();
 
@@ -98,34 +118,98 @@ client.on('guildMemberAdd', async (member) => {
         });
 
         if (usedInvite) {
-            const inviter = await client.users.fetch(usedInvite.inviter.id);
+            try {
+                const inviter = await client.users.fetch(usedInvite.inviter.id);
 
-            // Update database
-            client.db.get('SELECT * FROM invites WHERE user_id = ?', [inviter.id], (err, row) => {
-                if (err) {
-                    console.error('Error checking inviter:', err);
-                    return;
-                }
+                // Get inviter's total invites
+                client.db.get('SELECT total_invites FROM invites WHERE user_id = ?', [inviter.id], async (err, row) => {
+                    if (err) {
+                        console.error('Error checking inviter:', err);
+                        return;
+                    }
 
-                if (!row) {
-                    // Create new record
-                    client.db.run('INSERT INTO invites (user_id, total_invites, regular_invites, invite_codes) VALUES (?, 1, 1, ?)',
-                        [inviter.id, JSON.stringify([usedInvite.code])]);
-                } else {
-                    // Update existing record
-                    const inviteCodes = JSON.parse(row.invite_codes);
-                    inviteCodes.push(usedInvite.code);
+                    const totalInvites = row ? row.total_invites : 0;
 
-                    client.db.run('UPDATE invites SET total_invites = total_invites + 1, regular_invites = regular_invites + 1, invite_codes = ? WHERE user_id = ?',
-                        [JSON.stringify(inviteCodes), inviter.id]);
-                }
-            });
+                    // Send welcome message with error handling
+                    try {
+                        await welcomeChannel.send({
+                            embeds: [
+                                new Discord.MessageEmbed()
+                                    .setColor(config.color.green)
+                                    .setDescription(`${member.user} join; invited by ${inviter} (${totalInvites} invites)`)
+                                    .setTimestamp()
+                            ]
+                        });
+                    } catch (sendError) {
+                        console.error('Error sending welcome message:', sendError);
+                    }
+
+                    // Update database
+                    if (!row) {
+                        client.db.run('INSERT INTO invites (user_id, total_invites, regular_invites, invite_codes) VALUES (?, 1, 1, ?)',
+                            [inviter.id, JSON.stringify([usedInvite.code])], (dbError) => {
+                                if (dbError) console.error('Error creating inviter record:', dbError);
+                            });
+                    } else {
+                        const inviteCodes = JSON.parse(row.invite_codes || '[]');
+                        inviteCodes.push(usedInvite.code);
+
+                        client.db.run('UPDATE invites SET total_invites = total_invites + 1, regular_invites = regular_invites + 1, invite_codes = ? WHERE user_id = ?',
+                            [JSON.stringify(inviteCodes), inviter.id], (dbError) => {
+                                if (dbError) console.error('Error updating inviter record:', dbError);
+                            });
+                    }
+                });
+            } catch (inviterError) {
+                console.error('Error fetching inviter:', inviterError);
+            }
         }
 
         // Update the cache with new uses
         guildInvites.set(member.guild.id, new Map(newInvites.map((invite) => [invite.code, invite.uses])));
     } catch (err) {
         console.error('Error handling member join:', err);
+    }
+});
+
+// Event to track when members leave
+client.on('guildMemberRemove', async (member) => {
+    try {
+        const welcomeChannel = member.guild.channels.cache.get(config.welcomeChannelId);
+        if (!welcomeChannel) {
+            console.error(`Welcome channel ${config.welcomeChannelId} not found`);
+            return;
+        }
+
+        try {
+            await welcomeChannel.send({
+                embeds: [
+                    new Discord.MessageEmbed()
+                        .setColor(config.color.red)
+                        .setDescription(`${member.user.tag} left the server`)
+                        .setTimestamp()
+                ]
+            });
+        } catch (sendError) {
+            console.error('Error sending leave message:', sendError);
+        }
+
+        // Update leaves count for their inviter if we can find it
+        client.db.all('SELECT * FROM invites WHERE invite_codes LIKE ?', [`%${member.user.id}%`], (err, rows) => {
+            if (err) {
+                console.error('Error checking inviter for leaving member:', err);
+                return;
+            }
+
+            if (rows.length > 0) {
+                const inviterId = rows[0].user_id;
+                client.db.run('UPDATE invites SET leaves = leaves + 1 WHERE user_id = ?', [inviterId], (dbError) => {
+                    if (dbError) console.error('Error updating leaves count:', dbError);
+                });
+            }
+        });
+    } catch (err) {
+        console.error('Error handling member leave:', err);
     }
 });
 
@@ -205,9 +289,9 @@ client.on('messageCreate', async (message) => {
                         .setColor(config.color.red)
                         .setTitle('Unknown command :(')
                         .setDescription(`Sorry, but I cannot find the \`${commandName}\` command!`)
-                        .setFooter({ 
-                            text: message.author.tag, 
-                            iconURL: message.author.displayAvatarURL({ dynamic: true }) 
+                        .setFooter({
+                            text: message.author.tag,
+                            iconURL: message.author.displayAvatarURL({ dynamic: true })
                         })
                         .setTimestamp()
                 ]
@@ -229,9 +313,9 @@ client.on('messageCreate', async (message) => {
                     .setColor(config.color.red)
                     .setTitle('Error')
                     .setDescription('There was an error executing that command!')
-                    .setFooter({ 
-                        text: message.author.tag, 
-                        iconURL: message.author.displayAvatarURL({ dynamic: true }) 
+                    .setFooter({
+                        text: message.author.tag,
+                        iconURL: message.author.displayAvatarURL({ dynamic: true })
                     })
                     .setTimestamp()
             ]
