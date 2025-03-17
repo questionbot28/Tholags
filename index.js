@@ -143,14 +143,7 @@ client.on('guildMemberAdd', async (member) => {
 
                     // Send welcome message with error handling
                     try {
-                        await welcomeChannel.send({
-                            embeds: [
-                                new Discord.MessageEmbed()
-                                    .setColor(config.color.green)
-                                    .setDescription(`${member.user} join; invited by ${inviter} (${totalInvites} invites)`)
-                                    .setTimestamp()
-                            ]
-                        });
+                        await welcomeChannel.send(`${member.user} **joined**; invited by **${inviter.username}** (**${totalInvites}** invites)`);
                     } catch (sendError) {
                         console.error('Error sending welcome message:', sendError);
                     }
@@ -193,14 +186,7 @@ client.on('guildMemberRemove', async (member) => {
         }
 
         try {
-            await welcomeChannel.send({
-                embeds: [
-                    new Discord.MessageEmbed()
-                        .setColor(config.color.red)
-                        .setDescription(`${member.user.tag} left the server`)
-                        .setTimestamp()
-                ]
-            });
+            await welcomeChannel.send(`${member.user} **left**`);
         } catch (sendError) {
             console.error('Error sending leave message:', sendError);
         }
