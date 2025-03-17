@@ -588,6 +588,9 @@ client.on('interactionCreate', async interaction => {
     // Handle ticket menu selection
     if (interaction.isSelectMenu() && interaction.customId === 'ticket_menu') {
         await handleTicketCreation(interaction, interaction.values[0]);
+        await interaction.message.edit({
+            components: [interaction.message.components[0]]
+        });
     }
 
     // Handle close ticket button

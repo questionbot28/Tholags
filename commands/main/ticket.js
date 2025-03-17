@@ -21,6 +21,8 @@ module.exports = {
                 new Discord.MessageSelectMenu()
                     .setCustomId('ticket_menu')
                     .setPlaceholder('Select ticket category')
+                    .setMinValues(1)
+                    .setMaxValues(1)
                     .addOptions([
                         {
                             label: 'Event',
