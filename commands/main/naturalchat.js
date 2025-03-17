@@ -16,10 +16,10 @@ let commandInfoCache = null;
 // Function to get all commands information
 async function getAllCommandsInfo() {
   if (commandInfoCache) return commandInfoCache;
-  
+
   const commandInfo = [];
   const commandFolders = fs.readdirSync('./commands');
-  
+
   for (const folder of commandFolders) {
     const commandFiles = fs.readdirSync(`./commands/${folder}`).filter(file => file.endsWith('.js'));
     for (const file of commandFiles) {
@@ -37,7 +37,7 @@ async function getAllCommandsInfo() {
       }
     }
   }
-  
+
   commandInfoCache = commandInfo;
   return commandInfo;
 }
@@ -48,7 +48,7 @@ const createBotSystemInstructions = async () => {
   const commandDescriptions = commands.map(cmd => 
     `${cmd.prefix}${cmd.name}: ${cmd.description} (Usage: ${cmd.prefix}${cmd.usage})`
   ).join('\n');
-  
+
   return `You are the assistant for a Discord bot called "Wrecked Gen". Follow these guidelines:
 
 1. ABOUT THE BOT:
@@ -102,7 +102,7 @@ function isMessageDirectedAtBot(message, botUser) {
                          content.includes('wrecked') || 
                          content.includes('gen') || 
                          content.includes('assist');
-  
+
   // Message starts with a question
   const isQuestion = content.includes('?') || 
                     content.startsWith('who') || 
@@ -114,7 +114,7 @@ function isMessageDirectedAtBot(message, botUser) {
                     content.startsWith('can') || 
                     content.startsWith('do') || 
                     content.startsWith('is');
-  
+
   // Check for chat-like patterns
   const isChatPattern = content.startsWith('hi') ||
                       content.startsWith('hello') ||
@@ -123,7 +123,7 @@ function isMessageDirectedAtBot(message, botUser) {
                       content.startsWith('thank you') ||
                       content.startsWith('yo') ||
                       content.includes('help me');
-                      
+
   // Detect command questions
   const isCommandQuestion = content.includes('command') ||
                           content.includes('what can you do') ||
@@ -132,7 +132,7 @@ function isMessageDirectedAtBot(message, botUser) {
                           content.includes('help with') ||
                           content.includes('available command') ||
                           content.includes('list of command');
-  
+
   // Calculate a score to determine if the message is directed at the bot
   let score = 0;
   if (botMentioned) score += 1.0; // Definite trigger
@@ -141,40 +141,43 @@ function isMessageDirectedAtBot(message, botUser) {
   if (isChatPattern) score += 0.4;
   if (isCommandQuestion) score += 0.8; // High score for command questions
   if (message.channel.type === 'DM') score += 1.0; // Always respond in DMs
-  
+
   return score >= RESPONSE_THRESHOLD;
 }
 
 module.exports = {
   name: 'naturalchat',
   description: 'Processes natural language conversations with the bot',
-  
+
   async processMessage(message, client) {
     // Don't respond to bot messages
     if (message.author.bot) return false;
-    
+
+    // Only process in the specified channel
+    if (message.channel.id !== '1350354483401719929') return false;
+
     // Only process if this seems directed at the bot
     if (!isMessageDirectedAtBot(message, client.user)) return false;
-    
+
     try {
       // Check if API key is available
       if (!GEMINI_API_KEY) {
         console.log('Gemini API key not available for natural chat');
         return false;
       }
-      
+
       // Give visual feedback that bot is "typing"
       message.channel.sendTyping();
-      
+
       // Initialize the Gemini API
       const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
       const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-      
+
       // Get or create user's chat session
       if (!userChats.has(message.author.id)) {
         // System instructions that include all bot commands and knowledge
         const systemInstructions = await createBotSystemInstructions();
-        
+
         const chat = model.startChat({
           history: [
             {
@@ -193,43 +196,43 @@ module.exports = {
             topK: 40,
           },
         });
-        
+
         userChats.set(message.author.id, chat);
       }
-      
+
       // Get the user's chat session
       const chat = userChats.get(message.author.id);
-      
+
       // Prepare the context for the AI
       let userMessage = message.content;
-      
+
       // If the message is in a server and mentions the bot, remove the mention from the message
       if (message.guild && message.mentions.users.has(client.user.id)) {
         userMessage = userMessage.replace(`<@${client.user.id}>`, '').replace(`<@!${client.user.id}>`, '').trim();
       }
-      
+
       // If we don't have anything left, use a generic prompt
       if (!userMessage) {
         userMessage = "Hello";
       }
-      
+
       // Generate response
       const result = await chat.sendMessage(userMessage);
       const response = result.response.text();
-      
+
       // Send the response directly as a normal message (more conversational)
       if (response) {
         await message.reply(response);
         return true; // Indicates we handled this message
       }
-      
+
     } catch (error) {
       console.error('Error in natural chat processing:', error);
-      
+
       // Don't send error messages for natural chat to avoid confusion
       // Only log them to console
     }
-    
+
     return false;
   }
 };
