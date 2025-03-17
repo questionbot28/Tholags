@@ -1,171 +1,297 @@
-<%- include('./partials/header') %>
+<%- include('partials/header', { title: 'Dashboard' }) %>
 
 <div class="container-fluid">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3"><i class="bi bi-speedometer2 me-2"></i>Dashboard Overview</h1>
-    <span class="badge fs-6 <%= botStatus === 'Online' ? 'bg-success' : 'bg-danger' %>">
-      <i class="bi <%= botStatus === 'Online' ? 'bi-check-circle' : 'bi-exclamation-circle' %> me-1"></i>
-      Bot Status: <%= botStatus %> | Ping: <%= botPing %>ms
-    </span>
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h1 class="h3 mb-0">Dashboard</h1>
+      <p class="text-muted">Bot Overview and Statistics</p>
+    </div>
+    <div class="col-md-6 text-md-end">
+      <div class="btn-group">
+        <a href="/dashboard" class="btn btn-primary">
+          <i class="bi bi-arrow-clockwise me-1"></i> Refresh Stats
+        </a>
+      </div>
+    </div>
   </div>
   
+  <!-- Bot Status Section -->
   <div class="row mb-4">
-    <div class="col-md-3">
-      <div class="card h-100">
-        <div class="card-body stats-card">
-          <i class="bi bi-box-seam"></i>
-          <div class="count"><%= totalAccounts %></div>
-          <div class="label">Total Accounts</div>
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card stats-card h-100">
+        <div class="card-body">
+          <i class="bi bi-robot"></i>
+          <div class="count">
+            <span class="<%= botStatus === 'Online' ? 'text-success' : 'text-danger' %>">
+              <%= botStatus %>
+            </span>
+          </div>
+          <div class="label">Bot Status</div>
         </div>
       </div>
     </div>
     
-    <div class="col-md-3">
-      <div class="card h-100">
-        <div class="card-body stats-card">
-          <i class="bi bi-people"></i>
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card stats-card h-100">
+        <div class="card-body">
+          <i class="bi bi-speedometer"></i>
+          <div class="count"><%= botPing %> ms</div>
+          <div class="label">API Ping</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card stats-card h-100">
+        <div class="card-body">
+          <i class="bi bi-server"></i>
           <div class="count"><%= client.guilds.cache.size %></div>
           <div class="label">Servers</div>
         </div>
       </div>
     </div>
     
-    <div class="col-md-3">
-      <div class="card h-100">
-        <div class="card-body stats-card">
-          <i class="bi bi-ticket-perforated"></i>
-          <div class="count">0</div>
-          <div class="label">Open Tickets</div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="col-md-3">
-      <div class="card h-100">
-        <div class="card-body stats-card">
-          <i class="bi bi-clock-history"></i>
-          <div class="count"><%= Math.floor(client.uptime / 3600000) %>h <%= Math.floor((client.uptime % 3600000) / 60000) %>m</div>
-          <div class="label">Uptime</div>
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card stats-card h-100">
+        <div class="card-body">
+          <i class="bi bi-people"></i>
+          <div class="count"><%= client.users.cache.size %></div>
+          <div class="label">Users</div>
         </div>
       </div>
     </div>
   </div>
   
+  <!-- Account Stock Section -->
+  <div class="row mb-4">
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Account Stock Overview</h5>
+          <a href="/stock" class="btn btn-sm btn-primary">Manage Stock</a>
+        </div>
+        <div class="card-body">
+          <canvas id="stockChart" height="250"></canvas>
+          <div class="mt-3 text-center">
+            <div class="h4"><%= totalAccounts %></div>
+            <div class="text-muted">Total accounts in stock</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Bot Usage</h5>
+          <div>
+            <select class="form-select form-select-sm" id="timeRangeSelect">
+              <option value="day">Last 24 hours</option>
+              <option value="week" selected>Last 7 days</option>
+              <option value="month">Last 30 days</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body">
+          <canvas id="usageChart" height="250"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Recent Activity Section -->
   <div class="row">
-    <div class="col-md-6">
-      <div class="card mb-4">
+    <div class="col-md-6 mb-4">
+      <div class="card h-100">
         <div class="card-header">
-          <h5 class="card-title mb-0">Recent Activity</h5>
+          <h5 class="mb-0">Recent Commands</h5>
         </div>
         <div class="card-body p-0">
-          <div class="list-group list-group-flush">
-            <a href="#" class="list-group-item list-group-item-action">
-              <div class="d-flex w-100 justify-content-between">
-                <h6 class="mb-1">Bot Started</h6>
-                <small class="text-muted">just now</small>
-              </div>
-              <p class="mb-1">The bot has been started successfully and is ready to use.</p>
-            </a>
-            <a href="#" class="list-group-item list-group-item-action">
-              <div class="d-flex w-100 justify-content-between">
-                <h6 class="mb-1">Stock Refreshed</h6>
-                <small class="text-muted">3 mins ago</small>
-              </div>
-              <p class="mb-1">All stock files have been refreshed and are ready to be used.</p>
-            </a>
-            <a href="#" class="list-group-item list-group-item-action">
-              <div class="d-flex w-100 justify-content-between">
-                <h6 class="mb-1">New Accounts Added</h6>
-                <small class="text-muted">10 mins ago</small>
-              </div>
-              <p class="mb-1">New accounts have been added to the stock.</p>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="col-md-6">
-      <div class="card mb-4">
-        <div class="card-header">
-          <h5 class="card-title mb-0">Quick Actions</h5>
-        </div>
-        <div class="card-body">
-          <div class="d-grid gap-2">
-            <a href="/stock" class="btn btn-primary">
-              <i class="bi bi-box-seam me-2"></i> Manage Stock
-            </a>
-            <a href="/commands" class="btn btn-outline-secondary">
-              <i class="bi bi-terminal me-2"></i> View Commands
-            </a>
-            <a href="/tickets" class="btn btn-outline-secondary">
-              <i class="bi bi-ticket-perforated me-2"></i> View Tickets
-            </a>
-            <a href="/settings" class="btn btn-outline-secondary">
-              <i class="bi bi-gear me-2"></i> Bot Settings
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="row">
-    <div class="col-12">
-      <div class="card mb-4">
-        <div class="card-header">
-          <h5 class="card-title mb-0">Stock Overview</h5>
-        </div>
-        <div class="card-body">
           <div class="table-responsive">
-            <table class="table">
+            <table class="table mb-0">
               <thead>
                 <tr>
-                  <th>Category</th>
-                  <th>Files</th>
-                  <th>Accounts</th>
-                  <th>Actions</th>
+                  <th>Command</th>
+                  <th>User</th>
+                  <th>Server</th>
+                  <th>Time</th>
                 </tr>
               </thead>
               <tbody>
-                <% const stockFolders = ['basicstock', 'bstock', 'extreme', 'fstock']; %>
-                <% stockFolders.forEach(folder => { %>
-                  <% try { %>
-                    <% const files = fs.readdirSync(`./${folder}`); %>
-                    <% let totalAccounts = 0; %>
-                    <% files.forEach(file => { %>
-                      <% try { %>
-                        <% const content = fs.readFileSync(`./${folder}/${file}`, 'utf8'); %>
-                        <% const accounts = content.split('\n').filter(line => line.trim() !== ''); %>
-                        <% totalAccounts += accounts.length; %>
-                      <% } catch (err) { /* Ignore errors */ } %>
-                    <% }); %>
-                    <tr>
-                      <td><strong><%= folder %></strong></td>
-                      <td><%= files.length %></td>
-                      <td><%= totalAccounts %></td>
-                      <td>
-                        <a href="/stock#<%= folder %>" class="btn btn-sm btn-primary">View</a>
-                      </td>
-                    </tr>
-                  <% } catch (err) { %>
-                    <tr>
-                      <td><strong><%= folder %></strong></td>
-                      <td>0</td>
-                      <td>0</td>
-                      <td>
-                        <a href="/stock#<%= folder %>" class="btn btn-sm btn-primary">View</a>
-                      </td>
-                    </tr>
-                  <% } %>
-                <% }); %>
+                <!-- Sample Data, will be replaced with actual data -->
+                <tr>
+                  <td><code>.gen netflix</code></td>
+                  <td>User#1234</td>
+                  <td>My Server</td>
+                  <td>10 min ago</td>
+                </tr>
+                <tr>
+                  <td><code>.help</code></td>
+                  <td>Someone#5678</td>
+                  <td>Discord Server</td>
+                  <td>15 min ago</td>
+                </tr>
+                <tr>
+                  <td><code>.stock</code></td>
+                  <td>Admin#9012</td>
+                  <td>Admin Server</td>
+                  <td>30 min ago</td>
+                </tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
     </div>
+    
+    <div class="col-md-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="mb-0">Top Commands</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="commandsChart" height="250"></canvas>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
-<%- include('./partials/footer') %>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Stock Chart
+    const stockCtx = document.getElementById('stockChart').getContext('2d');
+    const stockChart = new Chart(stockCtx, {
+      type: 'pie',
+      data: {
+        labels: ['Basic', 'Premium', 'Extreme', 'Free'],
+        datasets: [{
+          data: [30, 25, 15, 30], // Sample data
+          backgroundColor: [
+            '#5865F2',
+            '#57F287',
+            '#FEE75C',
+            '#EB459E'
+          ],
+          borderColor: 'rgba(0, 0, 0, 0.1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: '#FFFFFF',
+              padding: 15
+            }
+          }
+        }
+      }
+    });
+    
+    // Usage Chart
+    const usageCtx = document.getElementById('usageChart').getContext('2d');
+    const usageChart = new Chart(usageCtx, {
+      type: 'line',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+          label: 'Commands Used',
+          data: [65, 59, 80, 81, 56, 55, 70], // Sample data
+          fill: true,
+          backgroundColor: 'rgba(88, 101, 242, 0.2)',
+          borderColor: '#5865F2',
+          tension: 0.4
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: '#FFFFFF'
+            }
+          },
+          x: {
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: '#FFFFFF'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#FFFFFF'
+            }
+          }
+        }
+      }
+    });
+    
+    // Top Commands Chart
+    const commandsCtx = document.getElementById('commandsChart').getContext('2d');
+    const commandsChart = new Chart(commandsCtx, {
+      type: 'bar',
+      data: {
+        labels: ['.gen', '.help', '.stock', '.bgen', '.check'],
+        datasets: [{
+          label: 'Usage Count',
+          data: [120, 90, 70, 60, 50], // Sample data
+          backgroundColor: [
+            '#5865F2',
+            '#57F287',
+            '#FEE75C',
+            '#EB459E',
+            '#ED4245'
+          ]
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        scales: {
+          x: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+              color: '#FFFFFF'
+            }
+          },
+          y: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: '#FFFFFF'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          }
+        }
+      }
+    });
+    
+    // Handle time range change
+    document.getElementById('timeRangeSelect').addEventListener('change', function() {
+      // This would typically make an API call to get new data
+      // For now, just update with random data
+      const newData = Array.from({length: 7}, () => Math.floor(Math.random() * 100));
+      usageChart.data.datasets[0].data = newData;
+      usageChart.update();
+    });
+  });
+</script>
+
+<%- include('partials/footer') %>

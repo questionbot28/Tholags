@@ -469,7 +469,9 @@ app.get('/stock/:folder/:file', ensureAuthenticated, ensureAdmin, (req, res) => 
       file,
       accounts,
       accountCount: accounts.length,
-      user: req.user
+      user: req.user,
+      success_msg: req.flash('success_msg'),
+      error_msg: req.flash('error_msg')
     });
   } catch (err) {
     console.error('Error viewing accounts:', err);
@@ -547,6 +549,78 @@ app.post('/stock/:folder/create', ensureAuthenticated, ensureAdmin, (req, res) =
     console.error('Error creating stock file:', err);
     req.flash('error_msg', 'An error occurred while creating the stock file');
     res.redirect('/stock');
+  }
+});
+
+// Remove specific account from file
+app.post('/stock/:folder/:file/remove', ensureAuthenticated, ensureAdmin, (req, res) => {
+  try {
+    const { folder, file } = req.params;
+    const { account } = req.body;
+    
+    // Validate folder and file
+    const allowedFolders = ['basicstock', 'bstock', 'extreme', 'fstock'];
+    if (!allowedFolders.includes(folder)) {
+      req.flash('error_msg', 'Invalid folder');
+      return res.redirect('/stock');
+    }
+    
+    const filePath = `./${folder}/${file}`;
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      req.flash('error_msg', 'File not found');
+      return res.redirect('/stock');
+    }
+    
+    // Read current content
+    let content = fs.readFileSync(filePath, 'utf8');
+    const accounts = content.split('\n').filter(line => line.trim() !== '');
+    
+    // Remove account
+    const updatedAccounts = accounts.filter(acc => acc !== account);
+    
+    // Write back to file
+    fs.writeFileSync(filePath, updatedAccounts.join('\n') + (updatedAccounts.length > 0 ? '\n' : ''));
+    
+    req.flash('success_msg', 'Account removed successfully');
+    res.redirect(`/stock/${folder}/${file}`);
+  } catch (error) {
+    console.error('Error removing account:', error);
+    req.flash('error_msg', 'An error occurred while removing the account');
+    res.redirect(`/stock/${req.params.folder}/${req.params.file}`);
+  }
+});
+
+// Clear all accounts from file
+app.post('/stock/:folder/:file/clear', ensureAuthenticated, ensureAdmin, (req, res) => {
+  try {
+    const { folder, file } = req.params;
+    
+    // Validate folder and file
+    const allowedFolders = ['basicstock', 'bstock', 'extreme', 'fstock'];
+    if (!allowedFolders.includes(folder)) {
+      req.flash('error_msg', 'Invalid folder');
+      return res.redirect('/stock');
+    }
+    
+    const filePath = `./${folder}/${file}`;
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      req.flash('error_msg', 'File not found');
+      return res.redirect('/stock');
+    }
+    
+    // Clear file
+    fs.writeFileSync(filePath, '');
+    
+    req.flash('success_msg', 'All accounts cleared successfully');
+    res.redirect(`/stock/${folder}/${file}`);
+  } catch (error) {
+    console.error('Error clearing accounts:', error);
+    req.flash('error_msg', 'An error occurred while clearing the accounts');
+    res.redirect(`/stock/${req.params.folder}/${req.params.file}`);
   }
 });
 

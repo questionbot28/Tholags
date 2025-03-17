@@ -1,0 +1,228 @@
+<%- include('partials/header', { title: 'Settings' }) %>
+
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h1 class="h3 mb-0">Bot Settings</h1>
+      <p class="text-muted">Configure your Discord bot</p>
+    </div>
+  </div>
+  
+  <!-- Alert Messages -->
+  <% if(typeof success_msg !== 'undefined' && success_msg !== '') { %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <%= success_msg %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% } %>
+  
+  <% if(typeof error_msg !== 'undefined' && error_msg !== '') { %>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <%= error_msg %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% } %>
+  
+  <div class="row">
+    <!-- General Settings -->
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">General Settings</h5>
+        </div>
+        <div class="card-body">
+          <form action="/settings" method="POST">
+            <div class="mb-3">
+              <label for="welcomeChannelId" class="form-label">Welcome Channel ID</label>
+              <input type="text" class="form-control" id="welcomeChannelId" name="welcomeChannelId" value="<%= config.welcomeChannelId || '' %>" placeholder="Enter the welcome channel ID">
+              <div class="form-text">Channel where welcome messages are sent</div>
+            </div>
+            
+            <!-- Prefix Settings -->
+            <div class="mb-3">
+              <label for="helpPrefix" class="form-label">Help Prefix</label>
+              <input type="text" class="form-control" id="helpPrefix" name="helpPrefix" value="<%= config.helpPrefix || '=' %>" placeholder="Enter the help prefix">
+              <div class="form-text">Prefix used for help commands (e.g., =help)</div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-save me-1"></i> Save Settings
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Command Prefixes -->
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Command Prefixes</h5>
+        </div>
+        <div class="card-body">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Command Type</th>
+                <th>Prefix</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Main Commands</td>
+                <td><code><%= config.mainPrefix || '.' %></code></td>
+              </tr>
+              <tr>
+                <td>Vouch Commands</td>
+                <td><code><%= config.vouchPrefix || '+' %></code></td>
+              </tr>
+              <tr>
+                <td>Negative Vouch</td>
+                <td><code><%= config.negVouchPrefix || '.' %></code></td>
+              </tr>
+              <tr>
+                <td>Basic Commands</td>
+                <td><code><%= config.basicPrefix || '.' %></code></td>
+              </tr>
+              <tr>
+                <td>Free Commands</td>
+                <td><code><%= config.freePrefix || '.' %></code></td>
+              </tr>
+              <tr>
+                <td>Boost Commands</td>
+                <td><code><%= config.boostPrefix || '.' %></code></td>
+              </tr>
+              <tr>
+                <td>Premium Commands</td>
+                <td><code><%= config.premiumPrefix || '.' %></code></td>
+              </tr>
+              <tr>
+                <td>Cookie Commands</td>
+                <td><code><%= config.cookiePrefix || '.' %></code></td>
+              </tr>
+              <tr>
+                <td>Extreme Commands</td>
+                <td><code><%= config.extremePrefix || '.' %></code></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="alert alert-info small mt-3 mb-0">
+            <i class="bi bi-info-circle me-2"></i>
+            Additional prefix settings can be configured in the config.json file
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Bot Token Settings -->
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Discord Bot Token</h5>
+        </div>
+        <div class="card-body">
+          <form action="/settings/token" method="POST">
+            <div class="mb-3">
+              <label for="botToken" class="form-label">Bot Token</label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="botToken" name="botToken" placeholder="Enter your Discord bot token" value="•••••••••••••••••••••••••">
+                <button class="btn btn-outline-secondary" type="button" id="toggleToken">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
+              <div class="form-text">Your bot token is stored securely in the .env file</div>
+            </div>
+            
+            <div class="alert alert-warning small">
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              Changing the bot token requires a bot restart to take effect
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-save me-1"></i> Update Token
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Backup and Restore -->
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Backup & Restore</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <a href="/settings/backup" class="btn btn-primary">
+              <i class="bi bi-download me-1"></i> Download Backup
+            </a>
+            
+            <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#restoreModal">
+              <i class="bi bi-upload me-1"></i> Restore from Backup
+            </button>
+          </div>
+          
+          <div class="alert alert-info small mt-3 mb-0">
+            <i class="bi bi-info-circle me-2"></i>
+            Backups include all stock files, configuration, and database
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Restore Modal -->
+<div class="modal fade" id="restoreModal" tabindex="-1" aria-labelledby="restoreModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="restoreModalLabel">Restore from Backup</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="/settings/restore" method="POST" enctype="multipart/form-data">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="backupFile" class="form-label">Backup File</label>
+            <input class="form-control" type="file" id="backupFile" name="backupFile" accept=".zip">
+          </div>
+          <div class="alert alert-warning small">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Warning: Restoring from a backup will overwrite all current data. This action cannot be undone.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Restore</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Toggle token visibility
+    const toggleToken = document.getElementById('toggleToken');
+    const botToken = document.getElementById('botToken');
+    
+    if (toggleToken && botToken) {
+      toggleToken.addEventListener('click', function() {
+        const type = botToken.getAttribute('type') === 'password' ? 'text' : 'password';
+        botToken.setAttribute('type', type);
+        
+        const icon = this.querySelector('i');
+        if (type === 'text') {
+          icon.classList.remove('bi-eye');
+          icon.classList.add('bi-eye-slash');
+        } else {
+          icon.classList.remove('bi-eye-slash');
+          icon.classList.add('bi-eye');
+        }
+      });
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>
