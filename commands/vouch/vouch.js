@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('vouches.db');
+const cooldowns = new Map();
 const config = require('../../config.json');
 
 module.exports = {
@@ -18,6 +19,21 @@ module.exports = {
         if (!mentionedUser) {
             return message.channel.send(`Usage: ${prefix}vouch @user {reason}`);
         }
+
+        // Check cooldown
+        const userId = message.author.id;
+        const cooldownTime = 40 * 60 * 1000; // 40 minutes in milliseconds
+
+        if (cooldowns.has(userId)) {
+            const expirationTime = cooldowns.get(userId);
+            if (Date.now() < expirationTime) {
+                const timeLeft = Math.ceil((expirationTime - Date.now()) / (60 * 1000));
+                return message.channel.send(`Please wait ${timeLeft} minutes before giving another vouch.`);
+            }
+        }
+
+        // Set cooldown
+        cooldowns.set(userId, Date.now() + cooldownTime);
 
         const reason = args.slice(1).join(' ');
 
