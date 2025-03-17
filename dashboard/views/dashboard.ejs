@@ -1,130 +1,166 @@
 <%- include('./partials/header') %>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h1>Dashboard</h1>
-  <div>
-    <span class="badge <%= botStatus === 'Online' ? 'bg-success' : 'bg-danger' %>">
-      <%= botStatus %>
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3"><i class="bi bi-speedometer2 me-2"></i>Dashboard Overview</h1>
+    <span class="badge fs-6 <%= botStatus === 'Online' ? 'bg-success' : 'bg-danger' %>">
+      <i class="bi <%= botStatus === 'Online' ? 'bi-check-circle' : 'bi-exclamation-circle' %> me-1"></i>
+      Bot Status: <%= botStatus %> | Ping: <%= botPing %>ms
     </span>
-    <span class="badge bg-secondary ms-2">Ping: <%= botPing %>ms</span>
-  </div>
-</div>
-
-<div class="row g-4 mb-4">
-  <div class="col-md-3">
-    <div class="card stats-card h-100">
-      <div class="card-body">
-        <i class="bi bi-robot"></i>
-        <div class="count"><%= botStatus === 'Online' ? 'Active' : 'Offline' %></div>
-        <div class="label">Bot Status</div>
-      </div>
-    </div>
   </div>
   
-  <div class="col-md-3">
-    <div class="card stats-card h-100">
-      <div class="card-body">
-        <i class="bi bi-box-seam"></i>
-        <div class="count"><%= totalAccounts %></div>
-        <div class="label">Total Accounts</div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="col-md-3">
-    <div class="card stats-card h-100">
-      <div class="card-body">
-        <i class="bi bi-people"></i>
-        <div class="count">-</div>
-        <div class="label">Total Users</div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="col-md-3">
-    <div class="card stats-card h-100">
-      <div class="card-body">
-        <i class="bi bi-activity"></i>
-        <div class="count"><%= botPing %></div>
-        <div class="label">Ping (ms)</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="row g-4">
-  <div class="col-md-6">
-    <div class="card h-100">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Stock Overview</h5>
-        <a href="/stock" class="btn btn-sm btn-primary">Manage Stock</a>
-      </div>
-      <div class="card-body">
-        <div class="mb-3">
-          <h6 class="text-muted mb-2">Account Types</h6>
-          <div class="d-flex flex-wrap gap-2">
-            <span class="badge bg-primary">Basic Stock</span>
-            <span class="badge bg-primary">Boost Stock</span>
-            <span class="badge bg-primary">Premium Stock</span>
-            <span class="badge bg-primary">Free Stock</span>
-            <span class="badge bg-primary">Extreme Stock</span>
-          </div>
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-body stats-card">
+          <i class="bi bi-box-seam"></i>
+          <div class="count"><%= totalAccounts %></div>
+          <div class="label">Total Accounts</div>
         </div>
-        
-        <div>
-          <h6 class="text-muted mb-2">Recent Activity</h6>
-          <ul class="list-group list-group-flush bg-transparent">
-            <li class="list-group-item bg-transparent text-white border-secondary">
-              <i class="bi bi-plus-circle text-success me-2"></i> Added 10 accounts to Netflix
-            </li>
-            <li class="list-group-item bg-transparent text-white border-secondary">
-              <i class="bi bi-dash-circle text-danger me-2"></i> Generated accounts from Disney+
-            </li>
-            <li class="list-group-item bg-transparent text-white border-secondary">
-              <i class="bi bi-plus-circle text-success me-2"></i> Restocked Spotify accounts
-            </li>
-          </ul>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-body stats-card">
+          <i class="bi bi-people"></i>
+          <div class="count"><%= client.guilds.cache.size %></div>
+          <div class="label">Servers</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-body stats-card">
+          <i class="bi bi-ticket-perforated"></i>
+          <div class="count">0</div>
+          <div class="label">Open Tickets</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-body stats-card">
+          <i class="bi bi-clock-history"></i>
+          <div class="count"><%= Math.floor(client.uptime / 3600000) %>h <%= Math.floor((client.uptime % 3600000) / 60000) %>m</div>
+          <div class="label">Uptime</div>
         </div>
       </div>
     </div>
   </div>
   
-  <div class="col-md-6">
-    <div class="card h-100">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Bot Status</h5>
-        <a href="/settings" class="btn btn-sm btn-primary">Settings</a>
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Recent Activity</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush">
+            <a href="#" class="list-group-item list-group-item-action">
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">Bot Started</h6>
+                <small class="text-muted">just now</small>
+              </div>
+              <p class="mb-1">The bot has been started successfully and is ready to use.</p>
+            </a>
+            <a href="#" class="list-group-item list-group-item-action">
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">Stock Refreshed</h6>
+                <small class="text-muted">3 mins ago</small>
+              </div>
+              <p class="mb-1">All stock files have been refreshed and are ready to be used.</p>
+            </a>
+            <a href="#" class="list-group-item list-group-item-action">
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">New Accounts Added</h6>
+                <small class="text-muted">10 mins ago</small>
+              </div>
+              <p class="mb-1">New accounts have been added to the stock.</p>
+            </a>
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        <div class="mb-4">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span>Bot Status:</span>
-            <span class="badge <%= botStatus === 'Online' ? 'bg-success' : 'bg-danger' %>">
-              <%= botStatus %>
-            </span>
-          </div>
-          <div class="progress" style="height: 8px;">
-            <div class="progress-bar bg-<%= botStatus === 'Online' ? 'success' : 'danger' %>" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+    
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Quick Actions</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <a href="/stock" class="btn btn-primary">
+              <i class="bi bi-box-seam me-2"></i> Manage Stock
+            </a>
+            <a href="/commands" class="btn btn-outline-secondary">
+              <i class="bi bi-terminal me-2"></i> View Commands
+            </a>
+            <a href="/tickets" class="btn btn-outline-secondary">
+              <i class="bi bi-ticket-perforated me-2"></i> View Tickets
+            </a>
+            <a href="/settings" class="btn btn-outline-secondary">
+              <i class="bi bi-gear me-2"></i> Bot Settings
+            </a>
           </div>
         </div>
-        
-        <div class="mb-4">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span>System Memory:</span>
-            <span>65%</span>
-          </div>
-          <div class="progress" style="height: 8px;">
-            <div class="progress-bar bg-warning" role="progressbar" style="width: 65%" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
-          </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row">
+    <div class="col-12">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Stock Overview</h5>
         </div>
-        
-        <div>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span>CPU Usage:</span>
-            <span>42%</span>
-          </div>
-          <div class="progress" style="height: 8px;">
-            <div class="progress-bar bg-info" role="progressbar" style="width: 42%" aria-valuenow="42" aria-valuemin="0" aria-valuemax="100"></div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Files</th>
+                  <th>Accounts</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% const stockFolders = ['basicstock', 'bstock', 'extreme', 'fstock']; %>
+                <% stockFolders.forEach(folder => { %>
+                  <% try { %>
+                    <% const files = fs.readdirSync(`./${folder}`); %>
+                    <% let totalAccounts = 0; %>
+                    <% files.forEach(file => { %>
+                      <% try { %>
+                        <% const content = fs.readFileSync(`./${folder}/${file}`, 'utf8'); %>
+                        <% const accounts = content.split('\n').filter(line => line.trim() !== ''); %>
+                        <% totalAccounts += accounts.length; %>
+                      <% } catch (err) { /* Ignore errors */ } %>
+                    <% }); %>
+                    <tr>
+                      <td><strong><%= folder %></strong></td>
+                      <td><%= files.length %></td>
+                      <td><%= totalAccounts %></td>
+                      <td>
+                        <a href="/stock#<%= folder %>" class="btn btn-sm btn-primary">View</a>
+                      </td>
+                    </tr>
+                  <% } catch (err) { %>
+                    <tr>
+                      <td><strong><%= folder %></strong></td>
+                      <td>0</td>
+                      <td>0</td>
+                      <td>
+                        <a href="/stock#<%= folder %>" class="btn btn-sm btn-primary">View</a>
+                      </td>
+                    </tr>
+                  <% } %>
+                <% }); %>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

@@ -1,142 +1,156 @@
 <%- include('./partials/header') %>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h1>Stock Management</h1>
-  <div>
-    <% 
-    let totalCount = 0;
-    Object.keys(stockData).forEach(folder => {
-      stockData[folder].forEach(file => {
-        totalCount += file.count;
-      });
-    });
-    %>
-    <span class="badge bg-primary">Total Accounts: <%= totalCount %></span>
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3"><i class="bi bi-box-seam me-2"></i>Stock Management</h1>
+    <a href="/dashboard" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+    </a>
   </div>
-</div>
-
-<ul class="nav nav-tabs mb-4">
-  <% Object.keys(stockData).forEach((folder, index) => { %>
-    <li class="nav-item">
-      <a class="nav-link <%= index === 0 ? 'active' : '' %>" id="<%= folder %>-tab" data-bs-toggle="tab" href="#<%= folder %>" role="tab">
-        <%= folder.charAt(0).toUpperCase() + folder.slice(1) %>
-        <span class="badge bg-secondary ms-1">
-          <% 
-          let folderCount = 0;
-          stockData[folder].forEach(file => {
-            folderCount += file.count;
-          });
-          %>
-          <%= folderCount %>
-        </span>
-      </a>
-    </li>
-  <% }) %>
-</ul>
-
-<div class="tab-content">
-  <% Object.keys(stockData).forEach((folder, index) => { %>
-    <div class="tab-pane fade <%= index === 0 ? 'show active' : '' %>" id="<%= folder %>" role="tabpanel">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0"><%= folder.charAt(0).toUpperCase() + folder.slice(1) %> Accounts</h5>
-          <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#create<%= folder %>Modal">
-            <i class="bi bi-plus-circle me-1"></i> Create New File
-          </button>
+  
+  <div class="row mb-4">
+    <% const stockFolders = ['basicstock', 'bstock', 'extreme', 'fstock']; %>
+    <% stockFolders.forEach(folder => { %>
+      <div class="col-md-3">
+        <div class="card h-100">
+          <div class="card-body stats-card">
+            <i class="bi bi-box-seam"></i>
+            <% let totalAccounts = 0; %>
+            <% let fileCount = 0; %>
+            <% try { %>
+              <% const files = stockData[folder] || []; %>
+              <% fileCount = files.length; %>
+              <% files.forEach(file => { totalAccounts += file.count; }); %>
+            <% } catch (err) { /* Ignore errors */ } %>
+            <div class="count"><%= totalAccounts %></div>
+            <div class="label"><%= folder %> Accounts</div>
+            <small class="text-muted"><%= fileCount %> files</small>
+          </div>
+          <div class="card-footer p-2">
+            <a href="#<%= folder %>" class="btn btn-sm btn-primary w-100">View Files</a>
+          </div>
         </div>
-        <div class="card-body">
-          <% if (stockData[folder].length === 0) { %>
-            <div class="alert alert-info">
-              No files found in this category. Create a new file to get started.
-            </div>
-          <% } else { %>
-            <div class="table-responsive">
-              <table class="table table-hover">
-                <thead>
+      </div>
+    <% }); %>
+  </div>
+  
+  <% stockFolders.forEach(folder => { %>
+    <div class="card mb-4" id="<%= folder %>">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0"><%= folder %> Stock Files</h5>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createFileModal<%= folder %>">
+          <i class="bi bi-plus-circle me-1"></i> Create New File
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>File Name</th>
+                <th>Accounts</th>
+                <th>Last Updated</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% try { %>
+                <% const files = stockData[folder] || []; %>
+                <% if (files.length === 0) { %>
                   <tr>
-                    <th>File Name</th>
-                    <th>Account Count</th>
-                    <th>Actions</th>
+                    <td colspan="4" class="text-center">No files in this category</td>
                   </tr>
-                </thead>
-                <tbody>
-                  <% stockData[folder].forEach(file => { %>
+                <% } else { %>
+                  <% files.forEach(file => { %>
                     <tr>
                       <td><%= file.name %></td>
-                      <td><%= file.count %></td>
+                      <td><%= file.count %> accounts</td>
+                      <td>
+                        <% try { %>
+                          <% const stats = fs.statSync(`./${folder}/${file.name}`); %>
+                          <%= stats.mtime.toLocaleDateString() %> <%= stats.mtime.toLocaleTimeString() %>
+                        <% } catch (err) { %>
+                          Unknown
+                        <% } %>
+                      </td>
                       <td>
                         <div class="btn-group">
-                          <a href="/stock/<%= folder %>/<%= file.name %>" class="btn btn-sm btn-info">
-                            <i class="bi bi-eye"></i> View
+                          <a href="/stock/<%= folder %>/<%= file.name %>" class="btn btn-sm btn-primary">
+                            <i class="bi bi-eye"></i>
                           </a>
-                          <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#delete<%= folder %><%= file.name.replace('.', '') %>Modal">
-                            <i class="bi bi-trash"></i> Delete
+                          <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addAccountsModal<%= folder %><%= file.name.replace('.txt', '') %>">
+                            <i class="bi bi-plus"></i>
                           </button>
+                          <form action="/stock/<%= folder %>/<%= file.name %>?_method=DELETE" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this file?')">
+                            <button type="submit" class="btn btn-sm btn-danger">
+                              <i class="bi bi-trash"></i>
+                            </button>
+                          </form>
                         </div>
                       </td>
                     </tr>
-                  <% }) %>
-                </tbody>
-              </table>
-            </div>
-          <% } %>
+                    
+                    <!-- Add Accounts Modal -->
+                    <div class="modal fade" id="addAccountsModal<%= folder %><%= file.name.replace('.txt', '') %>" tabindex="-1" aria-labelledby="addAccountsModalLabel<%= folder %><%= file.name.replace('.txt', '') %>" aria-hidden="true">
+                      <div class="modal-dialog">
+                        <div class="modal-content bg-dark text-light">
+                          <div class="modal-header">
+                            <h5 class="modal-title" id="addAccountsModalLabel<%= folder %><%= file.name.replace('.txt', '') %>">Add Accounts to <%= file.name %></h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                          </div>
+                          <form action="/stock/<%= folder %>/<%= file.name %>/add" method="POST">
+                            <div class="modal-body">
+                              <div class="mb-3">
+                                <label for="accounts<%= folder %><%= file.name.replace('.txt', '') %>" class="form-label">Accounts (one per line)</label>
+                                <textarea class="form-control" id="accounts<%= folder %><%= file.name.replace('.txt', '') %>" name="accounts" rows="10" placeholder="Enter accounts (one per line)" required></textarea>
+                              </div>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                              <button type="submit" class="btn btn-primary">Add Accounts</button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  <% }); %>
+                <% } %>
+              <% } catch (err) { %>
+                <tr>
+                  <td colspan="4" class="text-center text-danger">Error loading files: <%= err.message %></td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
-  <% }) %>
-</div>
-
-<!-- Create File Modals -->
-<% Object.keys(stockData).forEach(folder => { %>
-  <div class="modal fade" id="create<%= folder %>Modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content bg-dark text-white">
-        <div class="modal-header">
-          <h5 class="modal-title">Create New File in <%= folder.charAt(0).toUpperCase() + folder.slice(1) %></h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <form action="/stock/<%= folder %>/create" method="POST">
-          <div class="modal-body">
-            <div class="mb-3">
-              <label for="filename" class="form-label">File Name</label>
-              <input type="text" class="form-control bg-secondary text-white" id="filename" name="filename" placeholder="Enter file name without .txt extension" required>
-              <div class="form-text text-muted">The .txt extension will be added automatically</div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Create File</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-<% }) %>
-
-<!-- Delete File Modals -->
-<% Object.keys(stockData).forEach(folder => { %>
-  <% stockData[folder].forEach(file => { %>
-    <div class="modal fade" id="delete<%= folder %><%= file.name.replace('.', '') %>Modal" tabindex="-1" aria-hidden="true">
+    
+    <!-- Create File Modal -->
+    <div class="modal fade" id="createFileModal<%= folder %>" tabindex="-1" aria-labelledby="createFileModalLabel<%= folder %>" aria-hidden="true">
       <div class="modal-dialog">
-        <div class="modal-content bg-dark text-white">
+        <div class="modal-content bg-dark text-light">
           <div class="modal-header">
-            <h5 class="modal-title">Delete File</h5>
+            <h5 class="modal-title" id="createFileModalLabel<%= folder %>">Create New File in <%= folder %></h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <div class="modal-body">
-            <p>Are you sure you want to delete <strong><%= file.name %></strong>?</p>
-            <p class="text-danger">This action cannot be undone!</p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <form action="/stock/<%= folder %>/<%= file.name %>?_method=DELETE" method="POST">
-              <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
-          </div>
+          <form action="/stock/<%= folder %>/create" method="POST">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="filename<%= folder %>" class="form-label">File Name</label>
+                <input type="text" class="form-control" id="filename<%= folder %>" name="filename" placeholder="Enter file name (without .txt)" required>
+                <small class="form-text text-muted">Only alphanumeric characters, underscores, and hyphens are allowed. .txt will be added automatically.</small>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Create File</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
-  <% }) %>
-<% }) %>
+  <% }); %>
+</div>
 
 <%- include('./partials/footer') %>

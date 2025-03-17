@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %> | Discord Bot Admin Panel</title>
+  <title>Admin Login | Discord Bot Admin Panel</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
   <style>
@@ -18,34 +18,36 @@
       background-color: var(--background-color);
       color: var(--text-color);
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
       display: flex;
-      justify-content: center;
       align-items: center;
-      height: 100vh;
-      margin: 0;
-      padding: 0;
+      justify-content: center;
     }
     
     .login-container {
       background-color: var(--secondary-color);
       border-radius: 10px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
       padding: 30px;
       width: 100%;
-      max-width: 450px;
-      text-align: center;
+      max-width: 400px;
     }
     
-    .logo {
-      margin-bottom: 20px;
+    .login-header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    
+    .login-header i {
+      font-size: 3rem;
+      color: var(--primary-color);
+      margin-bottom: 15px;
     }
     
     .form-control {
       background-color: rgba(0, 0, 0, 0.2);
       border: 1px solid rgba(255, 255, 255, 0.1);
       color: var(--text-color);
-      padding: 12px;
-      margin-bottom: 15px;
     }
     
     .form-control:focus {
@@ -62,33 +64,22 @@
     .btn-primary {
       background-color: var(--primary-color);
       border-color: var(--primary-color);
-      padding: 12px;
-      font-weight: 600;
       width: 100%;
     }
     
     .btn-primary:hover {
       opacity: 0.9;
     }
-    
-    .alert {
-      margin-bottom: 20px;
-    }
-    
-    .back-link {
-      color: var(--primary-color);
-      text-decoration: none;
-      margin-top: 15px;
-      display: inline-block;
-    }
-    
-    .back-link:hover {
-      text-decoration: underline;
-    }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="login-container">
+    <div class="login-header">
+      <i class="bi bi-robot"></i>
+      <h1>Admin Login</h1>
+      <p class="text-muted">Please log in to access the admin panel</p>
+    </div>
+    
     <% if(success_msg != ''){ %>
       <div class="alert alert-success alert-dismissible fade show" role="alert">
         <%= success_msg %>
@@ -110,32 +101,33 @@
       </div>
     <% } %>
     
-    <div class="login-container">
-      <div class="logo">
-        <h1 class="mb-0"><i class="bi bi-robot me-2"></i> Admin Login</h1>
-        <p class="text-muted mt-2">Sign in to access your dashboard</p>
+    <form action="/login" method="POST">
+      <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-person"></i></span>
+          <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required>
+        </div>
       </div>
       
-      <form action="/login" method="POST">
-        <div class="mb-3">
-          <input type="text" name="username" class="form-control" placeholder="Username" required autofocus>
+      <div class="mb-4">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-lock"></i></span>
+          <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
         </div>
-        <div class="mb-4">
-          <input type="password" name="password" class="form-control" placeholder="Password" required>
-        </div>
-        <button type="submit" class="btn btn-primary">
-          <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
-        </button>
-      </form>
-      
-      <div class="mt-4">
-        <a href="/" class="back-link">
-          <i class="bi bi-arrow-left me-1"></i> Back to Home
-        </a>
       </div>
+      
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-box-arrow-in-right me-2"></i> Login
+      </button>
+    </form>
+    
+    <div class="text-center mt-4">
+      <small class="text-muted">Dashboard v1.0 | Discord Bot Admin Panel</small>
     </div>
   </div>
-
+  
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // Auto-hide alerts after 5 seconds
