@@ -13,6 +13,21 @@ const Discord = require('discord.js');
 const fs = require('fs');
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
+const session = require('express-session');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const bcrypt = require('bcrypt');
+const flash = require('connect-flash');
+const methodOverride = require('method-override');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
+const path = require('path');
+
+// Load configuration early so it's available throughout the application
+require('dotenv').config();
+const config = require('./config.json');
+const token = process.env.DISCORD_BOT_TOKEN || config.token;
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -210,8 +225,432 @@ client.on('guildMemberRemove', async (member) => {
     }
 });
 
+// Express and EJS setup
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'dashboard/views'));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(methodOverride('_method'));
+app.use(cookieParser());
+app.use(morgan('dev'));
+app.use(helmet({
+  contentSecurityPolicy: false,
+}));
+
+// Session configuration
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'bot-owner-dashboard-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24 // 1 day
+  }
+}));
+
+// Passport initialization
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash());
+
+// Global response variables
+app.use((req, res, next) => {
+  res.locals.success_msg = req.flash('success_msg');
+  res.locals.error_msg = req.flash('error_msg');
+  res.locals.error = req.flash('error');
+  res.locals.user = req.user || null;
+  next();
+});
+
+// Admin user for the dashboard
+const adminUsers = [
+  {
+    id: '1',
+    username: 'admin',
+    // Default password: admin123 (you should change this)
+    passwordHash: '$2b$10$mRIkfZv8zVOaMEAYBvF/jO5tRUkccvAYwQZt9S0mvxFir0bfBxwv2',
+    isAdmin: true
+  }
+];
+
+// Passport configuration
+passport.use(new LocalStrategy(
+  async (username, password, done) => {
+    try {
+      const user = adminUsers.find(u => u.username === username);
+      if (!user) {
+        return done(null, false, { message: 'Incorrect username' });
+      }
+      
+      const isMatch = await bcrypt.compare(password, user.passwordHash);
+      if (!isMatch) {
+        return done(null, false, { message: 'Incorrect password' });
+      }
+      
+      return done(null, user);
+    } catch (err) {
+      return done(err);
+    }
+  }
+));
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+  const user = adminUsers.find(u => u.id === id);
+  done(null, user);
+});
+
+// Authentication middleware
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  req.flash('error_msg', 'Please log in to view this resource');
+  res.redirect('/login');
+}
+
+function ensureAdmin(req, res, next) {
+  if (req.isAuthenticated() && req.user.isAdmin) {
+    return next();
+  }
+  req.flash('error_msg', 'You do not have permission to access this resource');
+  res.redirect('/dashboard');
+}
+
+// Expose client to routes
+app.use((req, res, next) => {
+  req.discordClient = client;
+  req.botConfig = config;
+  next();
+});
+
 // Express routes
-app.get('/', (req, res) => res.send('Bot is running!'));
+app.get('/', (req, res) => {
+  if (req.isAuthenticated()) {
+    return res.redirect('/dashboard');
+  }
+  res.render('index', { 
+    title: 'Discord Bot Admin Panel',
+    botUsername: client.user ? client.user.username : 'Bot'
+  });
+});
+
+// Auth routes
+app.get('/login', (req, res) => {
+  if (req.isAuthenticated()) {
+    return res.redirect('/dashboard');
+  }
+  res.render('login', { title: 'Login' });
+});
+
+app.post('/login', 
+  passport.authenticate('local', { 
+    failureRedirect: '/login',
+    failureFlash: true
+  }),
+  (req, res) => {
+    req.flash('success_msg', 'You are now logged in');
+    res.redirect('/dashboard');
+  }
+);
+
+app.get('/logout', (req, res) => {
+  req.logout(function(err) {
+    if (err) { return next(err); }
+    req.flash('success_msg', 'You are logged out');
+    res.redirect('/login');
+  });
+});
+
+// Dashboard routes
+app.get('/dashboard', ensureAuthenticated, async (req, res) => {
+  try {
+    // Count accounts in stock
+    const stockFolders = ['stock', 'basicstock', 'bstock', 'fstock', 'extreme'];
+    let totalAccounts = 0;
+    
+    for (const folder of stockFolders) {
+      try {
+        const files = fs.readdirSync(`./${folder}`);
+        for (const file of files) {
+          if (file.endsWith('.txt')) {
+            try {
+              const content = fs.readFileSync(`./${folder}/${file}`, 'utf8');
+              const lines = content.split('\n').filter(line => line.trim() !== '');
+              totalAccounts += lines.length;
+            } catch (err) {
+              console.error(`Error reading file ${folder}/${file}:`, err);
+            }
+          }
+        }
+      } catch (err) {
+        console.error(`Error reading folder ${folder}:`, err);
+      }
+    }
+    
+    res.render('dashboard', {
+      title: 'Dashboard',
+      botUsername: client.user ? client.user.username : 'Bot',
+      botStatus: client.ws.status === 0 ? 'Online' : 'Offline',
+      botPing: client.ws.ping,
+      totalAccounts,
+      user: req.user
+    });
+  } catch (err) {
+    console.error('Error rendering dashboard:', err);
+    req.flash('error_msg', 'An error occurred while loading the dashboard');
+    res.redirect('/');
+  }
+});
+
+// Stock Management routes
+app.get('/stock', ensureAuthenticated, ensureAdmin, async (req, res) => {
+  try {
+    const stockFolders = ['stock', 'basicstock', 'bstock', 'fstock', 'extreme'];
+    const stockData = {};
+    
+    for (const folder of stockFolders) {
+      try {
+        stockData[folder] = [];
+        const files = fs.readdirSync(`./${folder}`);
+        for (const file of files) {
+          if (file.endsWith('.txt')) {
+            try {
+              const content = fs.readFileSync(`./${folder}/${file}`, 'utf8');
+              const lines = content.split('\n').filter(line => line.trim() !== '');
+              stockData[folder].push({
+                name: file,
+                count: lines.length
+              });
+            } catch (err) {
+              console.error(`Error reading file ${folder}/${file}:`, err);
+            }
+          }
+        }
+      } catch (err) {
+        console.error(`Error reading folder ${folder}:`, err);
+      }
+    }
+    
+    res.render('stock', {
+      title: 'Stock Management',
+      stockData,
+      user: req.user
+    });
+  } catch (err) {
+    console.error('Error rendering stock page:', err);
+    req.flash('error_msg', 'An error occurred while loading the stock page');
+    res.redirect('/dashboard');
+  }
+});
+
+// View accounts in a specific stock file
+app.get('/stock/:folder/:file', ensureAuthenticated, ensureAdmin, (req, res) => {
+  try {
+    const { folder, file } = req.params;
+    const filePath = `./${folder}/${file}`;
+    
+    if (!fs.existsSync(filePath)) {
+      req.flash('error_msg', 'File not found');
+      return res.redirect('/stock');
+    }
+    
+    const content = fs.readFileSync(filePath, 'utf8');
+    const accounts = content.split('\n')
+      .filter(line => line.trim() !== '')
+      .map(line => line.trim());
+    
+    res.render('view-accounts', {
+      title: `${file} Accounts`,
+      folder,
+      file,
+      accounts,
+      accountCount: accounts.length,
+      user: req.user
+    });
+  } catch (err) {
+    console.error('Error viewing accounts:', err);
+    req.flash('error_msg', 'An error occurred while loading the accounts');
+    res.redirect('/stock');
+  }
+});
+
+// Add accounts to a stock file
+app.post('/stock/:folder/:file/add', ensureAuthenticated, ensureAdmin, (req, res) => {
+  try {
+    const { folder, file } = req.params;
+    const { accounts } = req.body;
+    const filePath = `./${folder}/${file}`;
+    
+    if (!fs.existsSync(filePath)) {
+      req.flash('error_msg', 'File not found');
+      return res.redirect('/stock');
+    }
+    
+    if (!accounts || accounts.trim() === '') {
+      req.flash('error_msg', 'No accounts provided');
+      return res.redirect(`/stock/${folder}/${file}`);
+    }
+    
+    // Append accounts to the file
+    const newAccounts = accounts.split('\n')
+      .filter(line => line.trim() !== '')
+      .map(line => line.trim())
+      .join('\n');
+    
+    fs.appendFileSync(filePath, '\n' + newAccounts);
+    
+    req.flash('success_msg', 'Accounts added successfully');
+    res.redirect(`/stock/${folder}/${file}`);
+  } catch (err) {
+    console.error('Error adding accounts:', err);
+    req.flash('error_msg', 'An error occurred while adding accounts');
+    res.redirect('/stock');
+  }
+});
+
+// Upload a file to add accounts
+app.post('/stock/:folder/:file/upload', ensureAuthenticated, ensureAdmin, (req, res) => {
+  // This would normally use multer for file uploads
+  // For simplicity, we're using text input in this version
+  req.flash('success_msg', 'File upload will be implemented in the next version');
+  res.redirect(`/stock/${folder}/${file}`);
+});
+
+// Create a new stock file
+app.post('/stock/:folder/create', ensureAuthenticated, ensureAdmin, (req, res) => {
+  try {
+    const { folder } = req.params;
+    const { filename } = req.body;
+    
+    if (!filename || filename.trim() === '') {
+      req.flash('error_msg', 'No filename provided');
+      return res.redirect('/stock');
+    }
+    
+    const filePath = `./${folder}/${filename}.txt`;
+    
+    if (fs.existsSync(filePath)) {
+      req.flash('error_msg', 'File already exists');
+      return res.redirect('/stock');
+    }
+    
+    // Create an empty file
+    fs.writeFileSync(filePath, '');
+    
+    req.flash('success_msg', 'Stock file created successfully');
+    res.redirect('/stock');
+  } catch (err) {
+    console.error('Error creating stock file:', err);
+    req.flash('error_msg', 'An error occurred while creating the stock file');
+    res.redirect('/stock');
+  }
+});
+
+// Delete a stock file
+app.delete('/stock/:folder/:file', ensureAuthenticated, ensureAdmin, (req, res) => {
+  try {
+    const { folder, file } = req.params;
+    const filePath = `./${folder}/${file}`;
+    
+    if (!fs.existsSync(filePath)) {
+      req.flash('error_msg', 'File not found');
+      return res.redirect('/stock');
+    }
+    
+    fs.unlinkSync(filePath);
+    
+    req.flash('success_msg', 'Stock file deleted successfully');
+    res.redirect('/stock');
+  } catch (err) {
+    console.error('Error deleting stock file:', err);
+    req.flash('error_msg', 'An error occurred while deleting the stock file');
+    res.redirect('/stock');
+  }
+});
+
+// User Management routes
+app.get('/users', ensureAuthenticated, ensureAdmin, async (req, res) => {
+  try {
+    // Read all users from the vouches database
+    let users = [];
+    
+    client.db.all('SELECT * FROM vouches', (err, rows) => {
+      if (err) {
+        console.error('Error fetching users:', err);
+        req.flash('error_msg', 'An error occurred while fetching users');
+        return res.redirect('/dashboard');
+      }
+      
+      users = rows;
+      
+      res.render('users', {
+        title: 'User Management',
+        users,
+        user: req.user
+      });
+    });
+  } catch (err) {
+    console.error('Error rendering users page:', err);
+    req.flash('error_msg', 'An error occurred while loading the users page');
+    res.redirect('/dashboard');
+  }
+});
+
+// Bot Settings routes
+app.get('/settings', ensureAuthenticated, ensureAdmin, (req, res) => {
+  try {
+    res.render('settings', {
+      title: 'Bot Settings',
+      config,
+      user: req.user
+    });
+  } catch (err) {
+    console.error('Error rendering settings page:', err);
+    req.flash('error_msg', 'An error occurred while loading the settings page');
+    res.redirect('/dashboard');
+  }
+});
+
+// Update bot settings
+app.post('/settings', ensureAuthenticated, ensureAdmin, (req, res) => {
+  try {
+    const { welcomeChannelId, helpPrefix } = req.body;
+    
+    // Update config
+    config.welcomeChannelId = welcomeChannelId || config.welcomeChannelId;
+    config.helpPrefix = helpPrefix || config.helpPrefix;
+    
+    // Save updated config
+    fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
+    
+    req.flash('success_msg', 'Settings updated successfully');
+    res.redirect('/settings');
+  } catch (err) {
+    console.error('Error updating settings:', err);
+    req.flash('error_msg', 'An error occurred while updating settings');
+    res.redirect('/settings');
+  }
+});
+
+// Logs & Analytics routes
+app.get('/logs', ensureAuthenticated, ensureAdmin, (req, res) => {
+  try {
+    // For a full implementation, you would track logs in a database
+    // This is a simplified version for demonstration purposes
+    res.render('logs', {
+      title: 'Logs & Analytics',
+      user: req.user
+    });
+  } catch (err) {
+    console.error('Error rendering logs page:', err);
+    req.flash('error_msg', 'An error occurred while loading the logs page');
+    res.redirect('/dashboard');
+  }
+});
 
 // Error handling for express server
 const server = app.listen(port, '0.0.0.0', () => {
@@ -227,13 +666,17 @@ const server = app.listen(port, '0.0.0.0', () => {
 
 client.commands = new Discord.Collection();
 
-require('dotenv').config();
-const config = require('./config.json');
-const token = process.env.DISCORD_BOT_TOKEN || config.token;
-
 if (!token) {
-    console.error('No Discord bot token provided! Please set DISCORD_BOT_TOKEN environment variable.');
-    process.exit(1);
+    console.warn('No Discord bot token provided! Using development mode for dashboard.');
+    // Create mock client properties needed for the dashboard
+    client.user = { 
+        username: 'Development Bot',
+        tag: 'DevelopmentBot#0000'
+    };
+    client.ws = {
+        status: 0,
+        ping: 42
+    };
 }
 
 // Load commands
@@ -645,7 +1088,12 @@ process.on('uncaughtException', (error) => {
     console.error('Uncaught exception:', error);
 });
 
-client.login(token).catch(error => {
-    console.error('Failed to login:', error);
-    process.exit(1);
-});
+// Only attempt login if we have a token
+if (token !== 'test_token_for_dashboard_development') {
+    client.login(token).catch(error => {
+        console.error('Failed to login:', error);
+        process.exit(1);
+    });
+} else {
+    console.log('Running in dashboard development mode. Bot login skipped.');
+}

@@ -1,0 +1,135 @@
+<%- include('./partials/header') %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1>Dashboard</h1>
+  <div>
+    <span class="badge <%= botStatus === 'Online' ? 'bg-success' : 'bg-danger' %>">
+      <%= botStatus %>
+    </span>
+    <span class="badge bg-secondary ms-2">Ping: <%= botPing %>ms</span>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-3">
+    <div class="card stats-card h-100">
+      <div class="card-body">
+        <i class="bi bi-robot"></i>
+        <div class="count"><%= botStatus === 'Online' ? 'Active' : 'Offline' %></div>
+        <div class="label">Bot Status</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card stats-card h-100">
+      <div class="card-body">
+        <i class="bi bi-box-seam"></i>
+        <div class="count"><%= totalAccounts %></div>
+        <div class="label">Total Accounts</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card stats-card h-100">
+      <div class="card-body">
+        <i class="bi bi-people"></i>
+        <div class="count">-</div>
+        <div class="label">Total Users</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card stats-card h-100">
+      <div class="card-body">
+        <i class="bi bi-activity"></i>
+        <div class="count"><%= botPing %></div>
+        <div class="label">Ping (ms)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Stock Overview</h5>
+        <a href="/stock" class="btn btn-sm btn-primary">Manage Stock</a>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <h6 class="text-muted mb-2">Account Types</h6>
+          <div class="d-flex flex-wrap gap-2">
+            <span class="badge bg-primary">Basic Stock</span>
+            <span class="badge bg-primary">Boost Stock</span>
+            <span class="badge bg-primary">Premium Stock</span>
+            <span class="badge bg-primary">Free Stock</span>
+            <span class="badge bg-primary">Extreme Stock</span>
+          </div>
+        </div>
+        
+        <div>
+          <h6 class="text-muted mb-2">Recent Activity</h6>
+          <ul class="list-group list-group-flush bg-transparent">
+            <li class="list-group-item bg-transparent text-white border-secondary">
+              <i class="bi bi-plus-circle text-success me-2"></i> Added 10 accounts to Netflix
+            </li>
+            <li class="list-group-item bg-transparent text-white border-secondary">
+              <i class="bi bi-dash-circle text-danger me-2"></i> Generated accounts from Disney+
+            </li>
+            <li class="list-group-item bg-transparent text-white border-secondary">
+              <i class="bi bi-plus-circle text-success me-2"></i> Restocked Spotify accounts
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Bot Status</h5>
+        <a href="/settings" class="btn btn-sm btn-primary">Settings</a>
+      </div>
+      <div class="card-body">
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span>Bot Status:</span>
+            <span class="badge <%= botStatus === 'Online' ? 'bg-success' : 'bg-danger' %>">
+              <%= botStatus %>
+            </span>
+          </div>
+          <div class="progress" style="height: 8px;">
+            <div class="progress-bar bg-<%= botStatus === 'Online' ? 'success' : 'danger' %>" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+        </div>
+        
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span>System Memory:</span>
+            <span>65%</span>
+          </div>
+          <div class="progress" style="height: 8px;">
+            <div class="progress-bar bg-warning" role="progressbar" style="width: 65%" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+        </div>
+        
+        <div>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span>CPU Usage:</span>
+            <span>42%</span>
+          </div>
+          <div class="progress" style="height: 8px;">
+            <div class="progress-bar bg-info" role="progressbar" style="width: 42%" aria-valuenow="42" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('./partials/footer') %>
