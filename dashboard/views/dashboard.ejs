@@ -45,7 +45,7 @@
       <div class="card stats-card h-100">
         <div class="card-body">
           <i class="bi bi-server"></i>
-          <div class="count"><%= client.guilds.cache.size %></div>
+          <div class="count"><%=  botUsername ? '1' : '0' %></div>
           <div class="label">Servers</div>
         </div>
       </div>
@@ -55,7 +55,7 @@
       <div class="card stats-card h-100">
         <div class="card-body">
           <i class="bi bi-people"></i>
-          <div class="count"><%= client.users.cache.size %></div>
+          <div class="count">N/A</div>
           <div class="label">Users</div>
         </div>
       </div>
@@ -167,7 +167,7 @@
       data: {
         labels: ['Basic', 'Premium', 'Extreme', 'Free'],
         datasets: [{
-          data: [30, 25, 15, 30], // Sample data
+          data: [<%= totalAccounts || 0 %>, 0, 0, 0], // Using actual total accounts
           backgroundColor: [
             '#5865F2',
             '#57F287',
