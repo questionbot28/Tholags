@@ -1,32 +1,31 @@
-// Authentication middleware
+/**
+ * Authentication middleware for the Discord Bot Admin Dashboard
+ */
 
-// Check if user is authenticated
+// Middleware to check if user is authenticated
 function ensureAuthenticated(req, res, next) {
-  if (req.session.isAuthenticated) {
+  if (req.isAuthenticated()) {
     return next();
   }
   
-  // Store the requested URL to redirect after login
-  req.session.returnTo = req.originalUrl;
-  
-  // Redirect to login page
+  // If not authenticated, redirect to login page
   req.flash('error_msg', 'Please log in to access this page');
   res.redirect('/login');
 }
 
-// Check if user is admin
+// Middleware to check if user is an admin
 function ensureAdmin(req, res, next) {
-  if (req.session.isAuthenticated && req.session.user.isAdmin) {
+  if (req.isAuthenticated() && req.user.role === 'admin') {
     return next();
   }
   
-  // Redirect to dashboard if authenticated but not admin
-  if (req.session.isAuthenticated) {
-    req.flash('error_msg', 'You do not have permission to access this page');
+  // If not an admin, redirect to dashboard if authenticated
+  if (req.isAuthenticated()) {
+    req.flash('error_msg', 'Access denied. Admin privileges required');
     return res.redirect('/dashboard');
   }
   
-  // Redirect to login page if not authenticated
+  // If not authenticated, redirect to login
   req.flash('error_msg', 'Please log in to access this page');
   res.redirect('/login');
 }
