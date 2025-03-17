@@ -349,8 +349,22 @@ client.on('messageCreate', async (message) => {
 async function handleTicketCreation(interaction, category) {
     const guild = interaction.guild;
     console.log('Attempting to create ticket with category:', category);
-    console.log('Available ticket categories:', config.ticketcategories);
+    
+    // Check if this is a code redemption ticket
+    if (category === 'Code') {
+        // Read verified users from file
+        const verifiedContent = fs.readFileSync('verified.txt', 'utf8').split('\n');
+        const isVerified = verifiedContent.some(line => line.includes(interaction.user.username));
+        
+        if (!isVerified) {
+            return interaction.reply({ 
+                content: '❌ You must be verified to create a code redemption ticket! Please verify first.',
+                ephemeral: true 
+            });
+        }
+    }
 
+    console.log('Available ticket categories:', config.ticketcategories);
     const ticketCategory = guild.channels.cache.get(config.ticketcategories[0]);
 
     if (!ticketCategory) {
