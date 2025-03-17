@@ -23,7 +23,7 @@ module.exports = {
           value: '• Be clear and specific in your questions\n• For complex tasks, regular commands are still more reliable\n• The bot maintains context in conversations\n• In DMs, the bot will always respond to your messages'
         }
       )
-      .setFooter({ text: 'Powered by Google Gemini 2.0 Flash' });
+      .setFooter({ text: 'Made by itsmeboi' });
 
     message.channel.send({ embeds: [embed] });
   }

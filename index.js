@@ -1,3 +1,14 @@
+const { 
+    Client, 
+    Intents, 
+    MessageEmbed, 
+    MessageButton, 
+    MessageActionRow, 
+    MessageSelectMenu, 
+    Permissions, 
+    Modal, 
+    TextInputComponent
+} = require('discord.js');
 const Discord = require('discord.js');
 const fs = require('fs');
 const express = require('express');
@@ -365,7 +376,12 @@ async function handleTicketCreation(interaction, category) {
 
     try {
         console.log('Creating ticket channel in category:', ticketCategory.name);
-        const ticketChannel = await guild.channels.create(`ticket-${interaction.user.username}`, {
+        // Create a ticket channel with the category name included
+        const channelName = category === 'Code' ? 
+            `code-${interaction.user.username}` : 
+            `ticket-${interaction.user.username}`;
+            
+        const ticketChannel = await guild.channels.create(channelName, {
             type: 'GUILD_TEXT',
             parent: ticketCategory,
             permissionOverwrites: [
@@ -392,22 +408,56 @@ async function handleTicketCreation(interaction, category) {
             ],
         });
 
-        const embed = new Discord.MessageEmbed()
-            .setColor('#0099ff')
-            .setTitle(`${category} Support Ticket`)
-            .setDescription(`Welcome ${interaction.user}!\nSupport will be with you shortly.\n\nCategory: ${category}`)
-            .setTimestamp();
+        // For Code Redemption tickets, show a form to enter the code
+        if (category === 'Code') {
+            const codeEmbed = new Discord.MessageEmbed()
+                .setColor('#0099ff')
+                .setTitle('Code Redemption Form')
+                .setDescription(`Welcome ${interaction.user}!\nPlease enter your redemption code in the form below.`)
+                .setFooter({ text: 'Made by itsmeboi' })
+                .setTimestamp();
 
-        const row = new Discord.MessageActionRow()
-            .addComponents(
-                new Discord.MessageButton()
-                    .setCustomId('close_ticket')
-                    .setLabel('Close Ticket')
-                    .setStyle('DANGER')
-                    .setEmoji('🔒')
-            );
+            // Create a modal button for code redemption
+            const modalButton = new Discord.MessageActionRow()
+                .addComponents(
+                    new Discord.MessageButton()
+                        .setCustomId('open_code_form')
+                        .setLabel('Enter Redemption Code')
+                        .setStyle('PRIMARY')
+                        .setEmoji('🔑')
+                );
 
-        await ticketChannel.send({ embeds: [embed], components: [row] });
+            const closeButton = new Discord.MessageActionRow()
+                .addComponents(
+                    new Discord.MessageButton()
+                        .setCustomId('close_ticket')
+                        .setLabel('Close Ticket')
+                        .setStyle('DANGER')
+                        .setEmoji('🔒')
+                );
+
+            await ticketChannel.send({ embeds: [codeEmbed], components: [modalButton, closeButton] });
+        } else {
+            // For other ticket types, show the regular support message
+            const embed = new Discord.MessageEmbed()
+                .setColor('#0099ff')
+                .setTitle(`${category} Support Ticket`)
+                .setDescription(`Welcome ${interaction.user}!\nSupport will be with you shortly.\n\nCategory: ${category}`)
+                .setFooter({ text: 'Made by itsmeboi' })
+                .setTimestamp();
+
+            const row = new Discord.MessageActionRow()
+                .addComponents(
+                    new Discord.MessageButton()
+                        .setCustomId('close_ticket')
+                        .setLabel('Close Ticket')
+                        .setStyle('DANGER')
+                        .setEmoji('🔒')
+                );
+
+            await ticketChannel.send({ embeds: [embed], components: [row] });
+        }
+
         return interaction.reply({ content: `Ticket created! Please check ${ticketChannel}`, ephemeral: true });
     } catch (error) {
         console.error('Error creating ticket channel:', error);
@@ -415,16 +465,161 @@ async function handleTicketCreation(interaction, category) {
     }
 }
 
-// Handle interactions (buttons and dropdowns)
+// Handle code redemption
+async function handleCodeRedemption(interaction, code) {
+    try {
+        // Check if code is valid
+        if (!code || code.trim() === '') {
+            return interaction.reply({ 
+                content: 'Please provide a valid redemption code.', 
+                ephemeral: true 
+            });
+        }
+
+        // Make sure the redeemcodes directory exists
+        const redeemDir = './redeemcodes';
+        if (!fs.existsSync(redeemDir)) {
+            fs.mkdirSync(redeemDir, { recursive: true });
+        }
+
+        const redeemFilePath = `${redeemDir}/redeemcodes.txt`;
+
+        // Create the file if it doesn't exist
+        if (!fs.existsSync(redeemFilePath)) {
+            fs.writeFileSync(redeemFilePath, '', 'utf8');
+        }
+
+        // Read the contents of redeemcodes.txt file
+        const data = await fs.promises.readFile(redeemFilePath, 'utf8');
+        const lines = data.split('\n');
+
+        // Check if the code exists in any line
+        const foundLineIndex = lines.findIndex((line) => line.startsWith(`${code} - `));
+
+        if (foundLineIndex !== -1) {
+            // Extract the content after the code
+            const redeemedContent = lines[foundLineIndex].substring(`${code} - `.length);
+
+            // Remove the redeemed line from the array
+            lines.splice(foundLineIndex, 1);
+
+            // Join the remaining lines
+            const updatedData = lines.join('\n');
+
+            // Write the updated content back to redeemcodes.txt
+            await fs.promises.writeFile(redeemFilePath, updatedData, 'utf8');
+
+            // Update the channel name with the service type
+            try {
+                // Extract service name (take the first word or full string if no spaces)
+                const serviceName = redeemedContent.split(' ')[0].toLowerCase();
+                const channel = interaction.channel;
+                
+                // Only rename if we're in a ticket channel
+                if (channel.name.startsWith('code-')) {
+                    await channel.setName(`${serviceName}-${interaction.user.username}`);
+                }
+                
+                // Send the success message
+                const successEmbed = new Discord.MessageEmbed()
+                    .setColor(config.color.green)
+                    .setTitle('REDEEMED CODE SUCCESSFULLY')
+                    .setDescription(`The code has been redeemed successfully for:\n**${redeemedContent}**`)
+                    .setFooter({ 
+                        text: `Redeemed by ${interaction.user.tag}`, 
+                        iconURL: interaction.user.displayAvatarURL({ dynamic: true }) 
+                    })
+                    .setTimestamp();
+                
+                return interaction.reply({ embeds: [successEmbed] });
+            } catch (error) {
+                console.error('Error updating channel name:', error);
+                // Still send success message even if renaming fails
+                const successEmbed = new Discord.MessageEmbed()
+                    .setColor(config.color.green)
+                    .setTitle('REDEEMED CODE SUCCESSFULLY')
+                    .setDescription(`The code has been redeemed successfully for:\n**${redeemedContent}**`)
+                    .setFooter({ 
+                        text: `Redeemed by ${interaction.user.tag}`, 
+                        iconURL: interaction.user.displayAvatarURL({ dynamic: true }) 
+                    })
+                    .setTimestamp();
+                
+                return interaction.reply({ embeds: [successEmbed] });
+            }
+        } else {
+            // Code not found
+            return interaction.reply({ 
+                embeds: [
+                    new Discord.MessageEmbed()
+                        .setColor(config.color.red)
+                        .setTitle('REDEEM CODE INVALID')
+                        .setDescription('The provided code is invalid.')
+                        .setFooter({ 
+                            text: interaction.user.tag, 
+                            iconURL: interaction.user.displayAvatarURL({ dynamic: true }) 
+                        })
+                        .setTimestamp()
+                ],
+                ephemeral: true
+            });
+        }
+    } catch (error) {
+        console.error('Error in code redemption:', error);
+        return interaction.reply({ 
+            embeds: [
+                new Discord.MessageEmbed()
+                    .setColor(config.color.red)
+                    .setTitle('An error occurred!')
+                    .setDescription('An error occurred while processing the redemption.')
+                    .setFooter({ 
+                        text: interaction.user.tag, 
+                        iconURL: interaction.user.displayAvatarURL({ dynamic: true }) 
+                    })
+                    .setTimestamp()
+            ],
+            ephemeral: true
+        });
+    }
+}
+
+// Handle interactions (buttons, dropdowns, and modals)
 client.on('interactionCreate', async interaction => {
+    // Handle ticket menu selection
     if (interaction.isSelectMenu() && interaction.customId === 'ticket_menu') {
         await handleTicketCreation(interaction, interaction.values[0]);
     }
 
+    // Handle close ticket button
     if (interaction.isButton() && interaction.customId === 'close_ticket') {
         const channel = interaction.channel;
         await interaction.reply('Closing ticket in 5 seconds...');
         setTimeout(() => channel.delete(), 5000);
+    }
+
+    // Handle code redemption form button
+    if (interaction.isButton() && interaction.customId === 'open_code_form') {
+        const modal = new Discord.Modal()
+            .setCustomId('code_redemption_modal')
+            .setTitle('Code Redemption');
+        
+        const codeInput = new Discord.TextInputComponent()
+            .setCustomId('redemption_code')
+            .setLabel('Enter your redemption code')
+            .setStyle('SHORT')
+            .setRequired(true)
+            .setPlaceholder('Example: ABC123DEF456');
+        
+        const firstActionRow = new Discord.MessageActionRow().addComponents(codeInput);
+        modal.addComponents(firstActionRow);
+        
+        await interaction.showModal(modal);
+    }
+    
+    // Handle code redemption modal submission
+    if (interaction.isModalSubmit() && interaction.customId === 'code_redemption_modal') {
+        const code = interaction.fields.getTextInputValue('redemption_code');
+        await handleCodeRedemption(interaction, code);
     }
 });
 

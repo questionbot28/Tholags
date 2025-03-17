@@ -58,7 +58,7 @@ module.exports = {
             .setColor('#0099FF')
             .setTitle('Private Chat Started')
             .setDescription("I've started a private chat with you! You can ask me anything, and I'll respond in a natural, conversational way. What's on your mind?")
-            .setFooter({ text: 'Powered by Google Gemini 2.0 Flash' });
+            .setFooter({ text: 'Made by itsmeboi' });
             
           // Respond in DM to start the conversation
           await message.author.send({ embeds: [welcomeEmbed] });
@@ -103,7 +103,7 @@ module.exports = {
       const responseEmbed = new MessageEmbed()
         .setColor('#00FF00')
         .setDescription(response)
-        .setFooter({ text: 'Powered by Google Gemini 2.0 Flash' });
+        .setFooter({ text: 'Made by itsmeboi' });
         
       // Edit the processing message with the AI's response
       await processingMessage.edit({ embeds: [responseEmbed] });

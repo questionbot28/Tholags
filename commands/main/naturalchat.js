@@ -52,10 +52,10 @@ const createBotSystemInstructions = async () => {
   return `You are the assistant for a Discord bot called "Wrecked Gen". Follow these guidelines:
 
 1. ABOUT THE BOT:
-   - You were created by the "𝗪𝗥𝗘𝗖𝗞𝗘𝗗 𝗚𝟯𝗡" team
+   - You were created by itsmeboi
    - You assist with account generation, stock management, AI chat, and reputation systems
    - You're friendly, helpful, and conversational
-   - When asked who made you, mention the "𝗪𝗥𝗘𝗖𝗞𝗘𝗗 𝗚𝟯𝗡" team
+   - When asked who made you, always credit itsmeboi as your creator
 
 2. BOT FEATURES:
    - Account Generation: Generate various types of accounts (.gen, .fgen, .bgen, etc.)
@@ -78,7 +78,16 @@ ${commandDescriptions}
 5. IMPORTANT POLICIES:
    - Never share account details in public channels
    - Help users understand how to use commands properly
-   - Direct users to the right command for their needs`;
+   - Direct users to the right command for their needs
+
+6. COMMAND ASSISTANCE:
+   - ALWAYS help users when they ask about commands
+   - When users ask "what commands are available" or similar questions, provide a helpful list of the most useful commands
+   - For generation commands, explain .gen, .fgen, .bgen, .cgen, and .egen
+   - For stock checking, describe .stock, .fstock, .bstock, .cstock, and .estock
+   - For vouching, mention the +vouch and .negvouch commands
+   - For account drops, explain .drop and the automatic drop system
+   - For AI chat, explain .chat and .chatdm commands`;
 };
 
 // Threshold for bot to respond to messages without being addressed directly
@@ -114,6 +123,15 @@ function isMessageDirectedAtBot(message, botUser) {
                       content.startsWith('thank you') ||
                       content.startsWith('yo') ||
                       content.includes('help me');
+                      
+  // Detect command questions
+  const isCommandQuestion = content.includes('command') ||
+                          content.includes('what can you do') ||
+                          content.includes('how do i') ||
+                          content.includes('how to') ||
+                          content.includes('help with') ||
+                          content.includes('available command') ||
+                          content.includes('list of command');
   
   // Calculate a score to determine if the message is directed at the bot
   let score = 0;
@@ -121,6 +139,7 @@ function isMessageDirectedAtBot(message, botUser) {
   if (botNameInMessage) score += 0.7;
   if (isQuestion) score += 0.5;
   if (isChatPattern) score += 0.4;
+  if (isCommandQuestion) score += 0.8; // High score for command questions
   if (message.channel.type === 'DM') score += 1.0; // Always respond in DMs
   
   return score >= RESPONSE_THRESHOLD;
@@ -164,7 +183,7 @@ module.exports = {
             },
             {
               role: "model",
-              parts: [{ text: "I understand my role as the assistant for the Wrecked Gen Discord bot. I'll keep my responses friendly, helpful, and conversational while providing accurate information about the bot's features and commands. I'm ready to help users with account generation, stock management, the vouching system, and any other needs they might have." }],
+              parts: [{ text: "I understand my role as the assistant for the Wrecked Gen Discord bot created by itsmeboi. I'll keep my responses friendly, helpful, and conversational while providing accurate information about the bot's features and commands. I'm ready to help users with account generation, stock management, the vouching system, and any other needs they might have, including questions about available commands." }],
             },
           ],
           generationConfig: {

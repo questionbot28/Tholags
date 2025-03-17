@@ -73,7 +73,7 @@ module.exports = {
         .setColor('#00FF00')
         .setTitle(`Reply to ${message.author.username}`)
         .setDescription(response)
-        .setFooter({ text: 'Powered by Google Gemini 2.0 Flash' });
+        .setFooter({ text: 'Made by itsmeboi' });
 
       await processingMessage.edit({ embeds: [responseEmbed] });
       
