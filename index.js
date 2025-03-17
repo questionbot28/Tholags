@@ -690,6 +690,10 @@ app.get('/settings', ensureAuthenticated, ensureAdmin, (req, res) => {
     res.render('settings', {
       title: 'Bot Settings',
       config,
+      client,
+      botUsername: client.user ? client.user.username : 'Bot',
+      botStatus: client.ws.status === 0 ? 'Online' : 'Offline',
+      botPing: client.ws.ping,
       user: req.user,
       activeRoute: '/settings'
     });
@@ -700,23 +704,181 @@ app.get('/settings', ensureAuthenticated, ensureAdmin, (req, res) => {
   }
 });
 
-// Update bot settings
-app.post('/settings', ensureAuthenticated, ensureAdmin, (req, res) => {
+// Update general settings
+app.post('/settings/general', ensureAuthenticated, ensureAdmin, (req, res) => {
   try {
-    const { welcomeChannelId, helpPrefix } = req.body;
+    const { botToken, genCooldown, egenCooldownHours, gif } = req.body;
+    const adminUserIds = Array.isArray(req.body['adminUserIds[]']) 
+      ? req.body['adminUserIds[]'].filter(id => id.trim() !== '') 
+      : (req.body['adminUserIds[]'] ? [req.body['adminUserIds[]']] : []);
     
     // Update config
-    config.welcomeChannelId = welcomeChannelId || config.welcomeChannelId;
-    config.helpPrefix = helpPrefix || config.helpPrefix;
+    if (botToken && botToken !== '••••••••••••••••••••••••••') {
+      config.token = botToken;
+    }
+    
+    if (genCooldown) config.genCooldown = parseInt(genCooldown) || config.genCooldown;
+    if (egenCooldownHours) config.egenCooldownHours = parseInt(egenCooldownHours) || config.egenCooldownHours;
+    if (gif) config.gif = gif;
+    if (adminUserIds.length > 0) config.adminUserIds = adminUserIds;
     
     // Save updated config
     fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
     
-    req.flash('success_msg', 'Settings updated successfully');
+    req.flash('success_msg', 'General settings updated successfully');
     res.redirect('/settings');
   } catch (err) {
-    console.error('Error updating settings:', err);
-    req.flash('error_msg', 'An error occurred while updating settings');
+    console.error('Error updating general settings:', err);
+    req.flash('error_msg', 'An error occurred while updating general settings');
+    res.redirect('/settings');
+  }
+});
+
+// Update channel settings
+app.post('/settings/channels', ensureAuthenticated, ensureAdmin, (req, res) => {
+  try {
+    const { 
+      welcomeChannelId, genChannel, fgenChannel, bgenChannel, 
+      egenChannel, cgenChannel, vouchChannelId, logsChannelId, 
+      dropChannelId, stockid 
+    } = req.body;
+    
+    // Update config
+    if (welcomeChannelId) config.welcomeChannelId = welcomeChannelId;
+    if (genChannel) config.genChannel = genChannel;
+    if (fgenChannel) config.fgenChannel = fgenChannel;
+    if (bgenChannel) config.bgenChannel = bgenChannel;
+    if (egenChannel) config.egenChannel = egenChannel;
+    if (cgenChannel) config.cgenChannel = cgenChannel;
+    if (vouchChannelId) config.vouchChannelId = vouchChannelId;
+    if (logsChannelId) config.logsChannelId = logsChannelId;
+    if (dropChannelId) config.dropChannelId = dropChannelId;
+    if (stockid) config.stockid = stockid;
+    
+    // Save updated config
+    fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
+    
+    req.flash('success_msg', 'Channel settings updated successfully');
+    res.redirect('/settings');
+  } catch (err) {
+    console.error('Error updating channel settings:', err);
+    req.flash('error_msg', 'An error occurred while updating channel settings');
+    res.redirect('/settings');
+  }
+});
+
+// Update role settings
+app.post('/settings/roles', ensureAuthenticated, ensureAdmin, (req, res) => {
+  try {
+    const { providorRole, dropRoleId, restockroleid } = req.body;
+    
+    const staffRoleIds = Array.isArray(req.body['staffRoleIds[]']) 
+      ? req.body['staffRoleIds[]'].filter(id => id.trim() !== '') 
+      : (req.body['staffRoleIds[]'] ? [req.body['staffRoleIds[]']] : []);
+      
+    const cookiesendroles = Array.isArray(req.body['cookiesendroles[]']) 
+      ? req.body['cookiesendroles[]'].filter(id => id.trim() !== '') 
+      : (req.body['cookiesendroles[]'] ? [req.body['cookiesendroles[]']] : []);
+    
+    // Update config
+    if (providorRole) config.providorRole = providorRole;
+    if (dropRoleId) config.dropRoleId = dropRoleId;
+    if (restockroleid) config.restockroleid = restockroleid;
+    if (staffRoleIds.length > 0) config.staffRoleIds = staffRoleIds;
+    if (cookiesendroles.length > 0) config.cookiesendroles = cookiesendroles;
+    
+    // Save updated config
+    fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
+    
+    req.flash('success_msg', 'Role settings updated successfully');
+    res.redirect('/settings');
+  } catch (err) {
+    console.error('Error updating role settings:', err);
+    req.flash('error_msg', 'An error occurred while updating role settings');
+    res.redirect('/settings');
+  }
+});
+
+// Update command settings
+app.post('/settings/commands', ensureAuthenticated, ensureAdmin, (req, res) => {
+  try {
+    const { 
+      mainPrefix, helpPrefix, vouchPrefix, negVouchPrefix,
+      extremePrefix, basicPrefix, freePrefix, cookiePrefix
+    } = req.body;
+    
+    // Update config
+    if (mainPrefix) config.mainPrefix = mainPrefix;
+    if (helpPrefix) config.helpPrefix = helpPrefix;
+    if (vouchPrefix) config.vouchPrefix = vouchPrefix;
+    if (negVouchPrefix) config.negVouchPrefix = negVouchPrefix;
+    if (extremePrefix) config.extremePrefix = extremePrefix;
+    if (basicPrefix) config.basicPrefix = basicPrefix;
+    if (freePrefix) config.freePrefix = freePrefix;
+    if (cookiePrefix) config.cookiePrefix = cookiePrefix;
+    
+    // Save updated config
+    fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
+    
+    req.flash('success_msg', 'Command settings updated successfully');
+    res.redirect('/settings');
+  } catch (err) {
+    console.error('Error updating command settings:', err);
+    req.flash('error_msg', 'An error occurred while updating command settings');
+    res.redirect('/settings');
+  }
+});
+
+// Update feature settings
+app.post('/settings/features', ensureAuthenticated, ensureAdmin, (req, res) => {
+  try {
+    const { error_message, notfound_message, dropSessionActive } = req.body;
+    
+    const ticketcategories = Array.isArray(req.body['ticketcategories[]']) 
+      ? req.body['ticketcategories[]'].filter(id => id.trim() !== '') 
+      : (req.body['ticketcategories[]'] ? [req.body['ticketcategories[]']] : []);
+    
+    // Update config
+    config.command.error_message = error_message === 'on';
+    config.command.notfound_message = notfound_message === 'on';
+    config.dropSessionActive = dropSessionActive === 'on';
+    if (ticketcategories.length > 0) config.ticketcategories = ticketcategories;
+    
+    // Save updated config
+    fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
+    
+    req.flash('success_msg', 'Feature settings updated successfully');
+    res.redirect('/settings');
+  } catch (err) {
+    console.error('Error updating feature settings:', err);
+    req.flash('error_msg', 'An error occurred while updating feature settings');
+    res.redirect('/settings');
+  }
+});
+
+// Update appearance settings
+app.post('/settings/appearance', ensureAuthenticated, ensureAdmin, (req, res) => {
+  try {
+    const { 
+      colorDefault, colorGreen, colorRed, colorYellow, colorBlue, footerGif
+    } = req.body;
+    
+    // Update config
+    if (colorDefault) config.color.default = colorDefault;
+    if (colorGreen) config.color.green = colorGreen;
+    if (colorRed) config.color.red = colorRed;
+    if (colorYellow) config.color.yellow = colorYellow;
+    if (colorBlue) config.color.blue = colorBlue;
+    if (footerGif) config.gif = footerGif;
+    
+    // Save updated config
+    fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
+    
+    req.flash('success_msg', 'Appearance settings updated successfully');
+    res.redirect('/settings');
+  } catch (err) {
+    console.error('Error updating appearance settings:', err);
+    req.flash('error_msg', 'An error occurred while updating appearance settings');
     res.redirect('/settings');
   }
 });
