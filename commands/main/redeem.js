@@ -62,7 +62,9 @@ module.exports = {
             const lines = data.split('\n');
 
             // Check if the code exists in any line
-            const foundLineIndex = lines.findIndex((line) => line.startsWith(`${codeToRedeem} - `));
+            const foundLineIndex = lines.findIndex((line) => 
+                line.trim().toLowerCase().startsWith(`${codeToRedeem.trim().toLowerCase()} - `)
+            );
 
             if (foundLineIndex !== -1) {
                 // Extract the content after the code
