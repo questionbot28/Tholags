@@ -404,7 +404,8 @@ app.get('/dashboard', ensureAuthenticated, async (req, res) => {
       botStatus: client.ws.status === 0 ? 'Online' : 'Offline',
       botPing: client.ws.ping,
       totalAccounts,
-      user: req.user
+      user: req.user,
+      activeRoute: '/dashboard'
     });
   } catch (err) {
     console.error('Error rendering dashboard:', err);
@@ -445,7 +446,8 @@ app.get('/stock', ensureAuthenticated, ensureAdmin, async (req, res) => {
     res.render('stock', {
       title: 'Stock Management',
       stockData,
-      user: req.user
+      user: req.user,
+      activeRoute: '/stock'
     });
   } catch (err) {
     console.error('Error rendering stock page:', err);
@@ -671,7 +673,8 @@ app.get('/users', ensureAuthenticated, ensureAdmin, async (req, res) => {
       res.render('users', {
         title: 'User Management',
         users,
-        user: req.user
+        user: req.user,
+        activeRoute: '/users'
       });
     });
   } catch (err) {
@@ -687,7 +690,8 @@ app.get('/settings', ensureAuthenticated, ensureAdmin, (req, res) => {
     res.render('settings', {
       title: 'Bot Settings',
       config,
-      user: req.user
+      user: req.user,
+      activeRoute: '/settings'
     });
   } catch (err) {
     console.error('Error rendering settings page:', err);
@@ -724,7 +728,8 @@ app.get('/logs', ensureAuthenticated, ensureAdmin, (req, res) => {
     // This is a simplified version for demonstration purposes
     res.render('logs', {
       title: 'Logs & Analytics',
-      user: req.user
+      user: req.user,
+      activeRoute: '/logs'
     });
   } catch (err) {
     console.error('Error rendering logs page:', err);
