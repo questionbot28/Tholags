@@ -12,7 +12,9 @@ module.exports = {
         
         // Check if user is verified
         const verifiedUsers = fs.readFileSync('verified.txt', 'utf8').split('\n');
-        const isVerified = verifiedUsers.includes(target.username);
+        const isVerified = verifiedUsers.some(user => 
+            user.toLowerCase().trim() === target.username.toLowerCase().trim()
+        );
 
         if (!isVerified) {
             return message.reply('This user is not verified. They need to use `.verify` command first.');
