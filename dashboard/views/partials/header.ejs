@@ -376,7 +376,7 @@
       
       <div class="navbar-user">
         <% if (user) { %>
-          <% if (user.role === 'admin') { %>
+          <% if (user.isAdmin) { %>
             <span class="badge bg-success me-2">Admin</span>
           <% } %>
           <span><%= user.username %></span>
