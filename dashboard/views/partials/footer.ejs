@@ -1,28 +1,52 @@
-  </main>
+    <footer class="mt-5 text-center">
+      <div class="text-muted">
+        <small>&copy; <%= new Date().getFullYear() %> Discord Bot Admin Panel | v1.0</small>
+      </div>
+    </footer>
+  </div> <!-- End of content div -->
   
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Auto-hide alerts after 5 seconds
     document.addEventListener('DOMContentLoaded', function() {
+      // Sidebar toggle functionality
+      const sidebarToggle = document.getElementById('sidebar-toggle');
+      const sidebar = document.querySelector('.sidebar');
+      const content = document.querySelector('.content');
+      
+      sidebarToggle.addEventListener('click', function() {
+        sidebar.classList.toggle('sidebar-hidden');
+        content.classList.toggle('content-wide');
+      });
+      
+      // Handle small screens on page load
+      function checkWidth() {
+        if (window.innerWidth < 768) {
+          sidebar.classList.add('sidebar-hidden');
+          content.classList.add('content-wide');
+        } else {
+          sidebar.classList.remove('sidebar-hidden');
+          content.classList.remove('content-wide');
+        }
+      }
+      
+      // Initial check
+      checkWidth();
+      
+      // Listen for window resize
+      window.addEventListener('resize', checkWidth);
+      
+      // Auto-hide alerts after 5 seconds
       setTimeout(function() {
         const alerts = document.querySelectorAll('.alert');
         alerts.forEach(function(alert) {
-          const bsAlert = new bootstrap.Alert(alert);
-          bsAlert.close();
+          if (typeof bootstrap !== 'undefined') {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+          } else {
+            alert.style.display = 'none';
+          }
         });
       }, 5000);
-      
-      // Mobile sidebar toggle
-      const sidebarToggle = document.querySelector('.sidebar-toggle');
-      const sidebar = document.querySelector('.sidebar');
-      const main = document.querySelector('main');
-      
-      if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', function() {
-          sidebar.classList.toggle('active');
-          main.classList.toggle('active');
-        });
-      }
     });
   </script>
 </body>

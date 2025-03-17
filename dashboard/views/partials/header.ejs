@@ -13,7 +13,7 @@
       --background-color: #23272A;
       --sidebar-color: #1e2124;
       --text-color: #FFFFFF;
-      --text-secondary: #B9BBBE;
+      --accent-color: #5865F2;
     }
     
     body {
@@ -22,12 +22,6 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
-    }
-    
-    .navbar {
-      background-color: var(--secondary-color);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     .sidebar {
@@ -35,86 +29,186 @@
       width: 250px;
       position: fixed;
       top: 0;
-      bottom: 0;
       left: 0;
+      height: 100vh;
       z-index: 100;
-      padding: 0;
-      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
       transition: all 0.3s;
+    }
+    
+    .sidebar-hidden {
+      margin-left: -250px;
     }
     
     .sidebar-header {
-      padding: 20px 15px;
+      padding: 20px;
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+    
+    .sidebar-logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--text-color);
+      text-decoration: none;
       display: flex;
       align-items: center;
-      height: 70px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
     
-    .sidebar-sticky {
-      height: calc(100vh - 70px);
-      overflow-y: auto;
-      padding-top: 15px;
-    }
-    
-    .nav-link {
-      color: var(--text-secondary);
-      padding: 10px 15px;
-      margin-bottom: 5px;
-      border-radius: 4px;
-      transition: all 0.3s;
-    }
-    
-    .nav-link:hover, .nav-link.active {
-      color: var(--text-color);
-      background-color: rgba(88, 101, 242, 0.2);
-    }
-    
-    .nav-link i {
+    .sidebar-logo i {
       margin-right: 10px;
-      width: 20px;
-      text-align: center;
+      color: var(--primary-color);
     }
     
-    main {
-      margin-left: 250px;
-      padding: 30px;
-      flex: 1;
+    .sidebar-menu {
+      padding: 0;
+      list-style: none;
+      margin-top: 20px;
+    }
+    
+    .sidebar-menu li {
+      margin-bottom: 5px;
+    }
+    
+    .sidebar-menu a {
+      display: block;
+      padding: 10px 20px;
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
       transition: all 0.3s;
+      border-left: 3px solid transparent;
+    }
+    
+    .sidebar-menu a:hover, .sidebar-menu a.active {
+      background-color: rgba(0, 0, 0, 0.2);
+      color: var(--text-color);
+      border-left-color: var(--primary-color);
+    }
+    
+    .sidebar-menu a i {
+      margin-right: 10px;
+    }
+    
+    .sidebar-divider {
+      height: 1px;
+      background-color: rgba(255, 255, 255, 0.1);
+      margin: 10px 20px;
+    }
+    
+    .content {
+      flex: 1;
+      padding: 20px;
+      margin-left: 250px;
+      transition: all 0.3s;
+      width: calc(100% - 250px);
+    }
+    
+    .content-wide {
+      margin-left: 0;
+      width: 100%;
+    }
+    
+    .navbar {
+      background-color: var(--secondary-color);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      border-radius: 5px;
+    }
+    
+    .navbar .navbar-brand {
+      display: flex;
+      align-items: center;
+    }
+    
+    .navbar .navbar-toggler {
+      border: none;
+      background-color: transparent;
+      color: var(--text-color);
+      font-size: 1.5rem;
+      padding: 0;
+    }
+    
+    .user-menu {
+      display: flex;
+      align-items: center;
+    }
+    
+    .user-menu .dropdown-toggle {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      color: var(--text-color);
+    }
+    
+    .user-menu .dropdown-toggle::after {
+      display: none;
+    }
+    
+    .user-menu .dropdown-menu {
+      background-color: var(--secondary-color);
+      border: none;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+      margin-top: 10px;
+    }
+    
+    .user-menu .dropdown-item {
+      color: var(--text-color);
+    }
+    
+    .user-menu .dropdown-item:hover {
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+    
+    .user-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      font-weight: bold;
     }
     
     .card {
       background-color: var(--secondary-color);
       border: none;
-      border-radius: 10px;
+      border-radius: 5px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       margin-bottom: 20px;
     }
     
     .card-header {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       background-color: rgba(0, 0, 0, 0.2);
-      border-radius: 10px 10px 0 0 !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 15px 20px;
+    }
+    
+    .card-body {
+      padding: 20px;
     }
     
     .stats-card {
       text-align: center;
-      padding: 10px;
+      padding: 25px 15px;
     }
     
     .stats-card i {
-      font-size: 2rem;
+      font-size: 2.5rem;
       color: var(--primary-color);
       margin-bottom: 10px;
     }
     
     .stats-card .count {
-      font-size: 1.5rem;
+      font-size: 2rem;
       font-weight: bold;
+      margin-bottom: 5px;
     }
     
     .stats-card .label {
-      color: var(--text-secondary);
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
     }
     
     .table {
@@ -122,11 +216,12 @@
     }
     
     .table thead {
-      border-color: rgba(255, 255, 255, 0.1);
+      background-color: rgba(0, 0, 0, 0.2);
     }
     
-    .table tbody tr:hover {
-      background-color: rgba(255, 255, 255, 0.05);
+    .table td, .table th {
+      border-color: rgba(255, 255, 255, 0.1);
+      vertical-align: middle;
     }
     
     .form-control, .form-select {
@@ -142,7 +237,7 @@
       box-shadow: 0 0 0 0.25rem rgba(88, 101, 242, 0.25);
     }
     
-    .form-control::placeholder, .form-select::placeholder {
+    .form-control::placeholder {
       color: rgba(255, 255, 255, 0.5);
     }
     
@@ -153,39 +248,16 @@
     
     .btn-primary:hover {
       opacity: 0.9;
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
     }
-    
-    .breadcrumb {
-      background-color: transparent;
-      padding: 0;
-      margin-bottom: 10px;
-    }
-    
-    .breadcrumb-item a {
-      color: var(--primary-color);
-    }
-    
-    .breadcrumb-item.active {
-      color: var(--text-secondary);
-    }
-    
-    .nav-tabs {
-      border-bottom-color: rgba(255, 255, 255, 0.1);
-    }
-    
-    .nav-tabs .nav-link {
-      color: var(--text-secondary);
-      border: none;
-      border-bottom: 2px solid transparent;
-    }
-    
-    .nav-tabs .nav-link:hover, .nav-tabs .nav-link.active {
+
+    .input-group-text {
+      background-color: rgba(0, 0, 0, 0.3);
       color: var(--text-color);
-      background-color: transparent;
-      border-bottom-color: var(--primary-color);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
-    /* Responsive */
     @media (max-width: 768px) {
       .sidebar {
         margin-left: -250px;
@@ -195,22 +267,14 @@
         margin-left: 0;
       }
       
-      main {
+      .content {
         margin-left: 0;
-        padding: 15px;
+        width: 100%;
       }
       
-      main.active {
+      .content.active {
         margin-left: 250px;
       }
-      
-      .sidebar-toggle {
-        display: block !important;
-      }
-    }
-    
-    .sidebar-toggle {
-      display: none;
     }
   </style>
 </head>
@@ -218,91 +282,72 @@
   <!-- Sidebar -->
   <div class="sidebar">
     <div class="sidebar-header">
-      <h3 class="m-0"><i class="bi bi-robot me-2"></i> Bot Admin</h3>
+      <a href="/dashboard" class="sidebar-logo">
+        <i class="bi bi-robot"></i>
+        <span>Bot Admin</span>
+      </a>
     </div>
     
-    <div class="sidebar-sticky">
-      <ul class="nav flex-column">
-        <li class="nav-item">
-          <a href="/dashboard" class="nav-link <%= activePage === 'dashboard' ? 'active' : '' %>">
-            <i class="bi bi-speedometer2"></i> Dashboard
-          </a>
-        </li>
-        
-        <li class="nav-item">
-          <a href="/stock" class="nav-link <%= activePage === 'stock' ? 'active' : '' %>">
-            <i class="bi bi-box-seam"></i> Stock Management
-          </a>
-        </li>
-        
-        <li class="nav-item">
-          <a href="/tickets" class="nav-link <%= activePage === 'tickets' ? 'active' : '' %>">
-            <i class="bi bi-ticket-perforated"></i> Tickets
-          </a>
-        </li>
-        
-        <li class="nav-item">
-          <a href="/users" class="nav-link <%= activePage === 'users' ? 'active' : '' %>">
-            <i class="bi bi-people"></i> User Management
-          </a>
-        </li>
-        
-        <li class="nav-item">
-          <a href="/drops" class="nav-link <%= activePage === 'drops' ? 'active' : '' %>">
-            <i class="bi bi-gift"></i> Drop System
-          </a>
-        </li>
-        
-        <li class="nav-item">
-          <a href="/codes" class="nav-link <%= activePage === 'codes' ? 'active' : '' %>">
-            <i class="bi bi-key"></i> Redeem Codes
-          </a>
-        </li>
-        
-        <li class="nav-item">
-          <a href="/commands" class="nav-link <%= activePage === 'commands' ? 'active' : '' %>">
-            <i class="bi bi-terminal"></i> Commands
-          </a>
-        </li>
-        
-        <li class="nav-item">
-          <a href="/settings" class="nav-link <%= activePage === 'settings' ? 'active' : '' %>">
-            <i class="bi bi-gear"></i> Settings
-          </a>
-        </li>
-        
-        <li class="nav-item mt-5">
-          <a href="/logout" class="nav-link text-danger">
-            <i class="bi bi-box-arrow-right"></i> Logout
-          </a>
-        </li>
-      </ul>
-    </div>
+    <ul class="sidebar-menu">
+      <li>
+        <a href="/dashboard" class="<%= title === 'Dashboard' ? 'active' : '' %>">
+          <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+      </li>
+      <li>
+        <a href="/stock" class="<%= title === 'Stock Management' ? 'active' : '' %>">
+          <i class="bi bi-box-seam"></i> Stock Management
+        </a>
+      </li>
+      <li>
+        <a href="/commands" class="<%= title === 'Commands' ? 'active' : '' %>">
+          <i class="bi bi-terminal"></i> Commands
+        </a>
+      </li>
+      <li>
+        <a href="/tickets" class="<%= title === 'Tickets' ? 'active' : '' %>">
+          <i class="bi bi-ticket-perforated"></i> Tickets
+        </a>
+      </li>
+      <div class="sidebar-divider"></div>
+      <li>
+        <a href="/settings" class="<%= title === 'Settings' ? 'active' : '' %>">
+          <i class="bi bi-gear"></i> Settings
+        </a>
+      </li>
+      <li>
+        <a href="/logs" class="<%= title === 'Logs' ? 'active' : '' %>">
+          <i class="bi bi-journal-text"></i> Bot Logs
+        </a>
+      </li>
+    </ul>
   </div>
   
   <!-- Main Content -->
-  <main>
-    <button class="btn btn-primary sidebar-toggle position-fixed" style="top: 10px; left: 10px; z-index: 99;">
-      <i class="bi bi-list"></i>
-    </button>
-    
-    <% if(success_msg != ''){ %>
-      <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <%= success_msg %>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  <div class="content">
+    <nav class="navbar">
+      <div class="container-fluid px-0">
+        <button class="navbar-toggler" type="button" id="sidebar-toggle">
+          <i class="bi bi-list"></i>
+        </button>
+        
+        <div class="user-menu">
+          <div class="dropdown">
+            <a href="#" class="dropdown-toggle" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <div class="user-icon">
+                <%= user.username.charAt(0).toUpperCase() %>
+              </div>
+              <span><%= user.username %></span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+              <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i> Profile</a></li>
+              <% if (user.isAdmin) { %>
+                <li><a class="dropdown-item" href="/admin"><i class="bi bi-shield-lock me-2"></i> Admin Panel</a></li>
+              <% } %>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="/logout"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
+            </ul>
+          </div>
+        </div>
       </div>
-    <% } %>
-    
-    <% if(error_msg != ''){ %>
-      <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <%= error_msg %>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    <% } %>
-    
-    <% if(error != ''){ %>
-      <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <%= error %>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    <% } %>
+    </nav>
