@@ -268,7 +268,7 @@ const adminUsers = [
     id: '1',
     username: 'admin',
     // Default password: admin123 (you should change this)
-    passwordHash: '$2b$10$mRIkfZv8zVOaMEAYBvF/jO5tRUkccvAYwQZt9S0mvxFir0bfBxwv2',
+    passwordHash: '$2b$10$NVSri28I6sFAqfUFmISIPO0FMKpMK7JxiPntOzS278z3FzhX3R3HC',
     isAdmin: true
   }
 ];
@@ -277,18 +277,25 @@ const adminUsers = [
 passport.use(new LocalStrategy(
   async (username, password, done) => {
     try {
+      console.log(`Login attempt: Username=${username}`);
       const user = adminUsers.find(u => u.username === username);
       if (!user) {
+        console.log('User not found');
         return done(null, false, { message: 'Incorrect username' });
       }
       
+      console.log('Comparing password...');
       const isMatch = await bcrypt.compare(password, user.passwordHash);
+      console.log(`Password match result: ${isMatch}`);
+      
       if (!isMatch) {
         return done(null, false, { message: 'Incorrect password' });
       }
       
+      console.log('Login successful');
       return done(null, user);
     } catch (err) {
+      console.error('Login error:', err);
       return done(err);
     }
   }

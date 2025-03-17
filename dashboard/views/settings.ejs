@@ -1,10 +1,17 @@
-<%- include('partials/header', { title: 'Settings' }) %>
+<%- include('partials/header', { title: 'Bot Settings' }) %>
 
 <div class="container-fluid">
   <div class="row mb-4">
     <div class="col-md-6">
       <h1 class="h3 mb-0">Bot Settings</h1>
       <p class="text-muted">Configure your Discord bot</p>
+    </div>
+    <div class="col-md-6 text-md-end">
+      <div class="btn-group">
+        <a href="/settings/backup" class="btn btn-outline-primary">
+          <i class="bi bi-download me-1"></i> Backup Config
+        </a>
+      </div>
     </div>
   </div>
   
@@ -25,147 +32,181 @@
   
   <div class="row">
     <!-- General Settings -->
-    <div class="col-lg-6">
-      <div class="card mb-4">
-        <div class="card-header">
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0">General Settings</h5>
         </div>
         <div class="card-body">
           <form action="/settings" method="POST">
             <div class="mb-3">
-              <label for="welcomeChannelId" class="form-label">Welcome Channel ID</label>
-              <input type="text" class="form-control" id="welcomeChannelId" name="welcomeChannelId" value="<%= config.welcomeChannelId || '' %>" placeholder="Enter the welcome channel ID">
-              <div class="form-text">Channel where welcome messages are sent</div>
+              <label for="helpPrefix" class="form-label">Help Command Prefix</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="helpPrefix" name="helpPrefix" 
+                      value="<%= config.helpPrefix %>" required>
+                <button class="btn btn-outline-secondary" type="button" onclick="resetToDefault('helpPrefix', '=')">
+                  Reset
+                </button>
+              </div>
+              <div class="form-text">The prefix used for help commands (e.g., =help)</div>
             </div>
             
-            <!-- Prefix Settings -->
             <div class="mb-3">
-              <label for="helpPrefix" class="form-label">Help Prefix</label>
-              <input type="text" class="form-control" id="helpPrefix" name="helpPrefix" value="<%= config.helpPrefix || '=' %>" placeholder="Enter the help prefix">
-              <div class="form-text">Prefix used for help commands (e.g., =help)</div>
+              <label for="mainPrefix" class="form-label">Main Command Prefix</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="mainPrefix" name="mainPrefix" 
+                      value="<%= config.mainPrefix %>" required>
+                <button class="btn btn-outline-secondary" type="button" onclick="resetToDefault('mainPrefix', '.')">
+                  Reset
+                </button>
+              </div>
+              <div class="form-text">The prefix used for main commands (e.g., .gen)</div>
             </div>
             
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-save me-1"></i> Save Settings
-            </button>
+            <div class="mb-3">
+              <label for="vouchPrefix" class="form-label">Vouch Command Prefix</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="vouchPrefix" name="vouchPrefix" 
+                      value="<%= config.vouchPrefix %>" required>
+                <button class="btn btn-outline-secondary" type="button" onclick="resetToDefault('vouchPrefix', '+')">
+                  Reset
+                </button>
+              </div>
+              <div class="form-text">The prefix used for vouch commands (e.g., +vouch)</div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="welcomeChannelId" class="form-label">Welcome Channel ID</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="welcomeChannelId" name="welcomeChannelId" 
+                      value="<%= config.welcomeChannelId || '' %>" placeholder="Enter channel ID">
+                <button class="btn btn-outline-secondary" type="button" onclick="clearField('welcomeChannelId')">
+                  Clear
+                </button>
+              </div>
+              <div class="form-text">The ID of the channel where welcome messages are sent</div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="cooldownDuration" class="form-label">Command Cooldown (seconds)</label>
+              <input type="number" class="form-control" id="cooldownDuration" name="cooldownDuration" 
+                    value="<%= config.cooldownDuration || 30 %>" min="0" required>
+              <div class="form-text">Cooldown period between commands for users</div>
+            </div>
+            
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-1"></i> Save General Settings
+              </button>
+            </div>
           </form>
         </div>
       </div>
     </div>
     
-    <!-- Command Prefixes -->
-    <div class="col-lg-6">
+    <!-- Bot Configuration -->
+    <div class="col-lg-6 mb-4">
       <div class="card mb-4">
         <div class="card-header">
-          <h5 class="mb-0">Command Prefixes</h5>
-        </div>
-        <div class="card-body">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Command Type</th>
-                <th>Prefix</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Main Commands</td>
-                <td><code><%= config.mainPrefix || '.' %></code></td>
-              </tr>
-              <tr>
-                <td>Vouch Commands</td>
-                <td><code><%= config.vouchPrefix || '+' %></code></td>
-              </tr>
-              <tr>
-                <td>Negative Vouch</td>
-                <td><code><%= config.negVouchPrefix || '.' %></code></td>
-              </tr>
-              <tr>
-                <td>Basic Commands</td>
-                <td><code><%= config.basicPrefix || '.' %></code></td>
-              </tr>
-              <tr>
-                <td>Free Commands</td>
-                <td><code><%= config.freePrefix || '.' %></code></td>
-              </tr>
-              <tr>
-                <td>Boost Commands</td>
-                <td><code><%= config.boostPrefix || '.' %></code></td>
-              </tr>
-              <tr>
-                <td>Premium Commands</td>
-                <td><code><%= config.premiumPrefix || '.' %></code></td>
-              </tr>
-              <tr>
-                <td>Cookie Commands</td>
-                <td><code><%= config.cookiePrefix || '.' %></code></td>
-              </tr>
-              <tr>
-                <td>Extreme Commands</td>
-                <td><code><%= config.extremePrefix || '.' %></code></td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="alert alert-info small mt-3 mb-0">
-            <i class="bi bi-info-circle me-2"></i>
-            Additional prefix settings can be configured in the config.json file
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Bot Token Settings -->
-    <div class="col-lg-6">
-      <div class="card mb-4">
-        <div class="card-header">
-          <h5 class="mb-0">Discord Bot Token</h5>
+          <h5 class="mb-0">Bot Configuration</h5>
         </div>
         <div class="card-body">
           <form action="/settings/token" method="POST">
             <div class="mb-3">
               <label for="botToken" class="form-label">Bot Token</label>
               <div class="input-group">
-                <input type="password" class="form-control" id="botToken" name="botToken" placeholder="Enter your Discord bot token" value="•••••••••••••••••••••••••">
+                <input type="password" class="form-control" id="botToken" name="botToken" 
+                      value="•••••••••••••••••••••••••" placeholder="Enter new token to update">
                 <button class="btn btn-outline-secondary" type="button" id="toggleToken">
                   <i class="bi bi-eye"></i>
                 </button>
               </div>
-              <div class="form-text">Your bot token is stored securely in the .env file</div>
+              <div class="form-text text-warning">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                Updating the token requires a bot restart to take effect
+              </div>
             </div>
             
-            <div class="alert alert-warning small">
-              <i class="bi bi-exclamation-triangle me-2"></i>
-              Changing the bot token requires a bot restart to take effect
+            <div class="mb-3">
+              <label for="botStatus" class="form-label">Bot Status</label>
+              <select class="form-select" id="botStatus" name="botStatus">
+                <option value="online" <%= config.botStatus === 'online' ? 'selected' : '' %>>Online</option>
+                <option value="idle" <%= config.botStatus === 'idle' ? 'selected' : '' %>>Idle</option>
+                <option value="dnd" <%= config.botStatus === 'dnd' ? 'selected' : '' %>>Do Not Disturb</option>
+                <option value="invisible" <%= config.botStatus === 'invisible' ? 'selected' : '' %>>Invisible</option>
+              </select>
+              <div class="form-text">The displayed status of your bot</div>
             </div>
             
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-save me-1"></i> Update Token
-            </button>
+            <div class="mb-3">
+              <label for="statusMessage" class="form-label">Status Message</label>
+              <input type="text" class="form-control" id="statusMessage" name="statusMessage" 
+                    value="<%= config.statusMessage || 'Type =help for commands' %>" 
+                    placeholder="E.g. Type =help for commands">
+              <div class="form-text">Message shown in the bot's status (e.g., "Playing Type =help for commands")</div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="statusType" class="form-label">Status Type</label>
+              <select class="form-select" id="statusType" name="statusType">
+                <option value="PLAYING" <%= config.statusType === 'PLAYING' ? 'selected' : '' %>>Playing</option>
+                <option value="WATCHING" <%= config.statusType === 'WATCHING' ? 'selected' : '' %>>Watching</option>
+                <option value="LISTENING" <%= config.statusType === 'LISTENING' ? 'selected' : '' %>>Listening to</option>
+                <option value="COMPETING" <%= config.statusType === 'COMPETING' ? 'selected' : '' %>>Competing in</option>
+              </select>
+              <div class="form-text">The type of status activity shown</div>
+            </div>
+            
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-1"></i> Save Bot Configuration
+              </button>
+            </div>
           </form>
         </div>
       </div>
-    </div>
-    
-    <!-- Backup and Restore -->
-    <div class="col-lg-6">
-      <div class="card mb-4">
+      
+      <!-- Bot Actions -->
+      <div class="card">
         <div class="card-header">
-          <h5 class="mb-0">Backup & Restore</h5>
+          <h5 class="mb-0">Bot Actions</h5>
         </div>
         <div class="card-body">
           <div class="d-grid gap-2">
-            <a href="/settings/backup" class="btn btn-primary">
-              <i class="bi bi-download me-1"></i> Download Backup
-            </a>
-            
-            <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#restoreModal">
-              <i class="bi bi-upload me-1"></i> Restore from Backup
+            <button class="btn btn-warning" id="restartBot">
+              <i class="bi bi-arrow-clockwise me-1"></i> Restart Bot
+            </button>
+            <button class="btn btn-danger" id="stopBot" data-bs-toggle="modal" data-bs-target="#confirmStopModal">
+              <i class="bi bi-power me-1"></i> Stop Bot
             </button>
           </div>
           
-          <div class="alert alert-info small mt-3 mb-0">
-            <i class="bi bi-info-circle me-2"></i>
-            Backups include all stock files, configuration, and database
+          <hr>
+          
+          <h6 class="mb-3">Current Bot Status</h6>
+          <div class="card bg-dark mb-3">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <div class="status-indicator 
+                  <%= 
+                    client && client.ws.status === 0 ? 'bg-success' : 
+                    (client && client.ws.status === 1 ? 'bg-warning' : 'bg-danger') 
+                  %>"></div>
+                <span class="ms-2">
+                  <%= client && client.ws.status === 0 ? 'Online' : 
+                     (client && client.ws.status === 1 ? 'Connecting' : 'Offline') %>
+                </span>
+              </div>
+              <div class="mb-2 small">
+                <strong>Ping:</strong> <%= client ? Math.round(client.ws.ping) : '0' %>ms
+              </div>
+              <div class="mb-2 small">
+                <strong>Username:</strong> <%= client.user ? client.user.username : 'Unknown' %>
+              </div>
+              <div class="small">
+                <strong>Uptime:</strong> <span id="botUptime">Calculating...</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -173,56 +214,107 @@
   </div>
 </div>
 
-<!-- Restore Modal -->
-<div class="modal fade" id="restoreModal" tabindex="-1" aria-labelledby="restoreModalLabel" aria-hidden="true">
+<!-- Confirm Stop Modal -->
+<div class="modal fade" id="confirmStopModal" tabindex="-1" aria-labelledby="confirmStopModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="restoreModalLabel">Restore from Backup</h5>
+        <h5 class="modal-title" id="confirmStopModalLabel">Confirm Bot Shutdown</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form action="/settings/restore" method="POST" enctype="multipart/form-data">
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="backupFile" class="form-label">Backup File</label>
-            <input class="form-control" type="file" id="backupFile" name="backupFile" accept=".zip">
-          </div>
-          <div class="alert alert-warning small">
-            <i class="bi bi-exclamation-triangle me-2"></i>
-            Warning: Restoring from a backup will overwrite all current data. This action cannot be undone.
-          </div>
+      <div class="modal-body">
+        <p>Are you sure you want to stop the bot? This will disconnect it from Discord until you restart it.</p>
+        <div class="alert alert-danger small">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          The bot will be offline and unable to respond to commands until manually restarted.
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-danger">Restore</button>
-        </div>
-      </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form action="/settings/stop" method="POST">
+          <button type="submit" class="btn btn-danger">Stop Bot</button>
+        </form>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Toggle token visibility
-    const toggleToken = document.getElementById('toggleToken');
-    const botToken = document.getElementById('botToken');
+    // Toggle bot token visibility
+    const tokenInput = document.getElementById('botToken');
+    const toggleButton = document.getElementById('toggleToken');
     
-    if (toggleToken && botToken) {
-      toggleToken.addEventListener('click', function() {
-        const type = botToken.getAttribute('type') === 'password' ? 'text' : 'password';
-        botToken.setAttribute('type', type);
+    toggleButton.addEventListener('click', function() {
+      const type = tokenInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      tokenInput.setAttribute('type', type);
+      toggleButton.innerHTML = type === 'password' 
+        ? '<i class="bi bi-eye"></i>' 
+        : '<i class="bi bi-eye-slash"></i>';
+    });
+    
+    // Reset field to default value
+    window.resetToDefault = function(fieldId, defaultValue) {
+      document.getElementById(fieldId).value = defaultValue;
+    };
+    
+    // Clear field
+    window.clearField = function(fieldId) {
+      document.getElementById(fieldId).value = '';
+    };
+    
+    // Bot uptime counter
+    function updateUptime() {
+      // This would normally get the actual bot uptime from the server
+      // For demo purposes, we'll just increment from page load
+      let seconds = 0;
+      const uptimeElement = document.getElementById('botUptime');
+      
+      setInterval(() => {
+        seconds++;
+        const days = Math.floor(seconds / (3600 * 24));
+        const hours = Math.floor((seconds % (3600 * 24)) / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
         
-        const icon = this.querySelector('i');
-        if (type === 'text') {
-          icon.classList.remove('bi-eye');
-          icon.classList.add('bi-eye-slash');
-        } else {
-          icon.classList.remove('bi-eye-slash');
-          icon.classList.add('bi-eye');
-        }
-      });
+        let uptimeString = '';
+        if (days > 0) uptimeString += `${days}d `;
+        if (hours > 0 || days > 0) uptimeString += `${hours}h `;
+        if (minutes > 0 || hours > 0 || days > 0) uptimeString += `${minutes}m `;
+        uptimeString += `${secs}s`;
+        
+        uptimeElement.textContent = uptimeString;
+      }, 1000);
     }
+    
+    updateUptime();
+    
+    // Restart bot button (would be connected to an API endpoint in a real implementation)
+    document.getElementById('restartBot').addEventListener('click', function() {
+      if (confirm('Are you sure you want to restart the bot?')) {
+        this.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Restarting...';
+        this.disabled = true;
+        
+        // Simulate restart (this would call a real restart endpoint in production)
+        setTimeout(() => {
+          this.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Bot Restarted';
+          
+          setTimeout(() => {
+            this.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i> Restart Bot';
+            this.disabled = false;
+          }, 2000);
+        }, 3000);
+      }
+    });
   });
 </script>
+
+<style>
+  .status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+</style>
 
 <%- include('partials/footer') %>

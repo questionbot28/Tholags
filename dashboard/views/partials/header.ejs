@@ -313,7 +313,7 @@
       <div class="nav-category">Dashboard</div>
       <ul class="nav flex-column">
         <li class="nav-item">
-          <a class="nav-link <%= activeRoute === '/dashboard' ? 'active' : '' %>" href="/dashboard">
+          <a class="nav-link <%= typeof activeRoute !== 'undefined' && activeRoute === '/dashboard' ? 'active' : '' %>" href="/dashboard">
             <i class="bi bi-speedometer"></i>
             Overview
           </a>
@@ -323,7 +323,7 @@
       <div class="nav-category">Stock Management</div>
       <ul class="nav flex-column">
         <li class="nav-item">
-          <a class="nav-link <%= activeRoute === '/stock' ? 'active' : '' %>" href="/stock">
+          <a class="nav-link <%= typeof activeRoute !== 'undefined' && activeRoute === '/stock' ? 'active' : '' %>" href="/stock">
             <i class="bi bi-box-seam"></i>
             Stock
           </a>
