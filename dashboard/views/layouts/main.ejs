@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gradient-to-br from-gray-900 to-gray-800">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Discord Bot Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .scale-in {
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            background: rgba(99, 102, 241, 0.2);
+            border-left: 3px solid rgb(99, 102, 241);
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body class="h-full bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+    <div x-data="{ menuOpen: false }" class="min-h-screen">
+        <% if (user) { %>
+            <!-- Navigation -->
+            <nav class="glass-effect border-b border-gray-700">
+                <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div class="flex h-16 items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="h-10 w-10 rounded-full bg-indigo-600 bg-opacity-20 flex items-center justify-center">
+                                    <i class="fas fa-robot text-indigo-500 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="hidden md:block">
+                                <div class="ml-10 flex items-baseline space-x-4">
+                                    <a href="/dashboard" 
+                                       class="nav-link <%= activeRoute === '/dashboard' ? 'active' : '' %> text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2">
+                                        <i class="fas fa-chart-line"></i>
+                                        <span>Dashboard</span>
+                                    </a>
+                                    <a href="/stock" 
+                                       class="nav-link <%= activeRoute === '/stock' ? 'active' : '' %> text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2">
+                                        <i class="fas fa-box"></i>
+                                        <span>Stock</span>
+                                    </a>
+                                    <a href="/users" 
+                                       class="nav-link <%= activeRoute === '/users' ? 'active' : '' %> text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2">
+                                        <i class="fas fa-users"></i>
+                                        <span>Users</span>
+                                    </a>
+                                    <a href="/settings" 
+                                       class="nav-link <%= activeRoute === '/settings' ? 'active' : '' %> text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2">
+                                        <i class="fas fa-cog"></i>
+                                        <span>Settings</span>
+                                    </a>
+                                    <a href="/logs" 
+                                       class="nav-link <%= activeRoute === '/logs' ? 'active' : '' %> text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2">
+                                        <i class="fas fa-list"></i>
+                                        <span>Logs</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="hidden md:block">
+                            <div class="ml-4 flex items-center md:ml-6">
+                                <button type="button" 
+                                        class="rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none">
+                                    <span class="sr-only">View notifications</span>
+                                    <i class="fas fa-bell"></i>
+                                </button>
+                                <div class="relative ml-3">
+                                    <div>
+                                        <button type="button" 
+                                                class="flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none">
+                                            <img class="h-8 w-8 rounded-full" 
+                                                 src="https://api.dicebear.com/7.x/initials/svg?seed=<%= user.username %>" 
+                                                 alt="<%= user.username %>">
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="-mr-2 flex md:hidden">
+                            <button @click="menuOpen = !menuOpen" 
+                                    class="glass-effect inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:text-white focus:outline-none">
+                                <i class="fas" :class="menuOpen ? 'fa-times' : 'fa-bars'"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile menu -->
+                <div x-show="menuOpen" 
+                     x-transition:enter="transition ease-out duration-100"
+                     x-transition:enter-start="transform opacity-0 scale-95"
+                     x-transition:enter-end="transform opacity-100 scale-100"
+                     x-transition:leave="transition ease-in duration-75"
+                     x-transition:leave-start="transform opacity-100 scale-100"
+                     x-transition:leave-end="transform opacity-0 scale-95"
+                     class="md:hidden">
+                    <div class="space-y-1 px-2 pb-3 pt-2 sm:px-3">
+                        <a href="/dashboard" 
+                           class="nav-link <%= activeRoute === '/dashboard' ? 'active' : '' %> block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+                            <i class="fas fa-chart-line mr-2"></i>Dashboard
+                        </a>
+                        <a href="/stock" 
+                           class="nav-link <%= activeRoute === '/stock' ? 'active' : '' %> block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+                            <i class="fas fa-box mr-2"></i>Stock
+                        </a>
+                        <a href="/users" 
+                           class="nav-link <%= activeRoute === '/users' ? 'active' : '' %> block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+                            <i class="fas fa-users mr-2"></i>Users
+                        </a>
+                        <a href="/settings" 
+                           class="nav-link <%= activeRoute === '/settings' ? 'active' : '' %> block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+                            <i class="fas fa-cog mr-2"></i>Settings
+                        </a>
+                        <a href="/logs" 
+                           class="nav-link <%= activeRoute === '/logs' ? 'active' : '' %> block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+                            <i class="fas fa-list mr-2"></i>Logs
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        <% } %>
+
+        <!-- Flash Messages -->
+        <% if(success_msg != ''){ %>
+            <div class="fade-in bg-green-500 bg-opacity-10 border border-green-500 text-green-500 px-4 py-3 shadow-md rounded-b" role="alert">
+                <p class="font-bold"><%= success_msg %></p>
+            </div>
+        <% } %>
+
+        <% if(error_msg != ''){ %>
+            <div class="fade-in bg-red-500 bg-opacity-10 border border-red-500 text-red-500 px-4 py-3 shadow-md rounded-b" role="alert">
+                <p class="font-bold"><%= error_msg %></p>
+            </div>
+        <% } %>
+
+        <!-- Main Content -->
+        <main class="fade-in py-6">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <%- body %>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="glass-effect mt-auto py-4">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <p class="text-center text-sm text-gray-400">
+                    Discord Bot Dashboard © <%= new Date().getFullYear() %>
+                    <span class="mx-2">|</span>
+                    <a href="#" class="hover:text-white transition-colors duration-200">Terms</a>
+                    <span class="mx-2">|</span>
+                    <a href="#" class="hover:text-white transition-colors duration-200">Privacy</a>
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Add dynamic background animation
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            document.body.style.background = `radial-gradient(circle at ${x * 100}% ${y * 100}%, rgb(49, 46, 129), rgb(17, 24, 39))`;
+        });
+    </script>
+</body>
+</html>

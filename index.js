@@ -30,7 +30,7 @@ const config = require('./config.json');
 const token = process.env.DISCORD_BOT_TOKEN || config.token;
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = 5000; // Always use port 5000, no fallback needed
 
 // Initialize Discord client with all required intents
 const client = new Discord.Client({
@@ -860,7 +860,7 @@ app.post('/settings/features', ensureAuthenticated, ensureAdmin, (req, res) => {
 app.post('/settings/appearance', ensureAuthenticated, ensureAdmin, (req, res) => {
   try {
     const { 
-      colorDefault, colorGreen, colorRed, colorYellow, colorBlue, footerGif
+            colorDefault, colorGreen, colorRed, colorYellow, colorBlue, footerGif
     } = req.body;
     
     // Update config
@@ -902,13 +902,14 @@ app.get('/logs', ensureAuthenticated, ensureAdmin, (req, res) => {
 
 // Error handling for express server
 const server = app.listen(port, '0.0.0.0', () => {
-    console.log('Server is listening on port ' + port);
+    console.log(`Server is running on port ${port}`);
 }).on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
-        console.log(`Port ${port} is already in use. Trying alternative port...`);
-        server.listen(0); // Let the OS assign an available port
+        console.error(`Port ${port} is already in use. Please ensure no other service is using this port.`);
+        process.exit(1); // Exit if port is in use
     } else {
         console.error('Server error:', err);
+        process.exit(1);
     }
 });
 
@@ -1054,7 +1055,7 @@ async function handleTicketCreation(interaction, category) {
             });
         }
     }
-
+    
     console.log('Available ticket categories:', config.ticketcategories);
     const ticketCategory = guild.channels.cache.get(config.ticketcategories[0]);
 
@@ -1064,7 +1065,7 @@ async function handleTicketCreation(interaction, category) {
         console.error('Guild channels:', Array.from(guild.channels.cache.map(c => `${c.name}: ${c.id}`)));
         return;
     }
-
+    
     try {
         console.log('Creating ticket channel in category:', ticketCategory.name);
         // Create a ticket channel with the category name included
@@ -1098,7 +1099,7 @@ async function handleTicketCreation(interaction, category) {
                 },
             ],
         });
-
+        
         // For Code Redemption tickets, show a form to enter the code
         if (category === 'Code') {
             const codeEmbed = new Discord.MessageEmbed()
@@ -1107,7 +1108,7 @@ async function handleTicketCreation(interaction, category) {
                 .setDescription(`Welcome ${interaction.user}!\nPlease enter your redemption code in the form below.`)
                 .setFooter({ text: 'Made by itsmeboi' })
                 .setTimestamp();
-
+            
             // Create a modal button for code redemption
             const modalButton = new Discord.MessageActionRow()
                 .addComponents(
@@ -1117,7 +1118,7 @@ async function handleTicketCreation(interaction, category) {
                         .setStyle('PRIMARY')
                         .setEmoji('🔑')
                 );
-
+            
             const closeButton = new Discord.MessageActionRow()
                 .addComponents(
                     new Discord.MessageButton()
@@ -1126,7 +1127,7 @@ async function handleTicketCreation(interaction, category) {
                         .setStyle('DANGER')
                         .setEmoji('🔒')
                 );
-
+            
             await ticketChannel.send({ embeds: [codeEmbed], components: [modalButton, closeButton] });
         } else {
             // For other ticket types, show the regular support message
@@ -1136,7 +1137,7 @@ async function handleTicketCreation(interaction, category) {
                 .setDescription(`Welcome ${interaction.user}!\nSupport will be with you shortly.\n\nCategory: ${category}`)
                 .setFooter({ text: 'Made by itsmeboi' })
                 .setTimestamp();
-
+            
             const row = new Discord.MessageActionRow()
                 .addComponents(
                     new Discord.MessageButton()
@@ -1145,10 +1146,10 @@ async function handleTicketCreation(interaction, category) {
                         .setStyle('DANGER')
                         .setEmoji('🔒')
                 );
-
+            
             await ticketChannel.send({ embeds: [embed], components: [row] });
         }
-
+        
         return interaction.reply({ content: `Ticket created! Please check ${ticketChannel}`, ephemeral: true });
     } catch (error) {
         console.error('Error creating ticket channel:', error);
@@ -1166,40 +1167,40 @@ async function handleCodeRedemption(interaction, code) {
                 ephemeral: true 
             });
         }
-
+        
         // Make sure the redeemcodes directory exists
         const redeemDir = './redeemcodes';
         if (!fs.existsSync(redeemDir)) {
             fs.mkdirSync(redeemDir, { recursive: true });
         }
-
+        
         const redeemFilePath = `${redeemDir}/redeemcodes.txt`;
-
+        
         // Create the file if it doesn't exist
         if (!fs.existsSync(redeemFilePath)) {
             fs.writeFileSync(redeemFilePath, '', 'utf8');
         }
-
+        
         // Read the contents of redeemcodes.txt file
         const data = await fs.promises.readFile(redeemFilePath, 'utf8');
         const lines = data.split('\n');
-
+        
         // Check if the code exists in any line
         const foundLineIndex = lines.findIndex((line) => line.startsWith(`${code} - `));
-
+        
         if (foundLineIndex !== -1) {
             // Extract the content after the code
             const redeemedContent = lines[foundLineIndex].substring(`${code} - `.length);
-
+            
             // Remove the redeemed line from the array
             lines.splice(foundLineIndex, 1);
-
+            
             // Join the remaining lines
             const updatedData = lines.join('\n');
-
+            
             // Write the updated content back to redeemcodes.txt
             await fs.promises.writeFile(redeemFilePath, updatedData, 'utf8');
-
+            
             // Update the channel name with the service type
             try {
                 // Extract service name (take the first word or full string if no spaces)
@@ -1283,14 +1284,14 @@ client.on('interactionCreate', async interaction => {
             components: [interaction.message.components[0]]
         });
     }
-
+    
     // Handle close ticket button
     if (interaction.isButton() && interaction.customId === 'close_ticket') {
         const channel = interaction.channel;
         await interaction.reply('Closing ticket in 5 seconds...');
         setTimeout(() => channel.delete(), 5000);
     }
-
+    
     // Handle code redemption form button
     if (interaction.isButton() && interaction.customId === 'open_code_form') {
         const modal = new Discord.Modal()

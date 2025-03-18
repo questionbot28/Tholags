@@ -26,7 +26,10 @@
     "@discordjs/builders": "^1.10.1",
     "@discordjs/rest": "^2.4.3",
     "@google/generative-ai": "^0.24.0",
+    "@heroicons/react": "^2.2.0",
+    "@tailwindcss/forms": "^0.5.10",
     "adm-zip": "^0.5.10",
+    "autoprefixer": "^10.4.21",
     "axios": "^1.8.3",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
@@ -40,6 +43,7 @@
     "ejs": "^3.1.10",
     "express": "^4.18.2",
     "express-session": "^1.18.1",
+    "framer-motion": "^12.5.0",
     "fs": "^0.0.1-security",
     "google-auth": "^0.0.1",
     "google-auth-library": "^9.15.1",
@@ -57,8 +61,10 @@
     "os": "^0.1.2",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
+    "postcss": "^8.5.3",
     "replitdb": "^1.0.0-beta",
     "sqlite3": "^5.1.7",
+    "tailwindcss": "^4.0.14",
     "unzipper": "^0.10.14"
   }
 }

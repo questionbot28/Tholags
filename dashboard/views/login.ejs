@@ -1,150 +1,125 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-gradient-to-br from-gray-900 to-gray-800">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login | Discord Bot Admin Panel</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <style>
-    :root {
-      --primary-color: #5865F2;
-      --secondary-color: #2C2F33;
-      --background-color: #23272A;
-      --text-color: #FFFFFF;
-    }
-    
-    body {
-      background-color: var(--background-color);
-      color: var(--text-color);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .login-container {
-      background-color: var(--secondary-color);
-      border-radius: 8px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-      padding: 30px;
-      width: 100%;
-      max-width: 400px;
-    }
-    
-    .login-header {
-      text-align: center;
-      margin-bottom: 25px;
-    }
-    
-    .login-header i {
-      font-size: 3rem;
-      color: var(--primary-color);
-      margin-bottom: 15px;
-    }
-    
-    .login-header h2 {
-      font-weight: 600;
-    }
-    
-    .login-form .form-control {
-      background-color: rgba(0, 0, 0, 0.2);
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      color: var(--text-color);
-      padding: 12px 15px;
     }
-    
-    .login-form .form-control:focus {
-      background-color: rgba(0, 0, 0, 0.3);
-      color: var(--text-color);
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 0.25rem rgba(88, 101, 242, 0.25);
+
+    .fade-in-up {
+      animation: fadeInUp 0.6s ease-out;
     }
-    
-    .login-form .form-control::placeholder {
-      color: rgba(255, 255, 255, 0.5);
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
-    
-    .login-form .form-label {
-      font-weight: 500;
+
+    .input-focus-effect {
+      transition: all 0.3s ease;
     }
-    
-    .login-form .btn-primary {
-      background-color: var(--primary-color);
-      border-color: var(--primary-color);
-      padding: 10px 15px;
-      font-weight: 500;
-      width: 100%;
+
+    .input-focus-effect:focus {
+      transform: scale(1.02);
+      box-shadow: 0 0 20px rgba(88, 101, 242, 0.2);
     }
-    
-    .login-form .btn-primary:hover {
-      opacity: 0.9;
-      background-color: var(--primary-color);
-      border-color: var(--primary-color);
+
+    .btn-hover-effect {
+      transition: all 0.3s ease;
     }
-    
-    .alert {
-      margin-bottom: 20px;
+
+    .btn-hover-effect:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(88, 101, 242, 0.3);
     }
   </style>
 </head>
-<body>
-  <div class="login-container">
-    <div class="login-header">
-      <i class="bi bi-robot"></i>
-      <h2>Discord Bot Admin</h2>
-      <p class="text-muted">Login to access the dashboard</p>
-    </div>
-    
-    <% if(success_msg != '') { %>
-      <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <%= success_msg %>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    <% } %>
-    
-    <% if(error_msg != '') { %>
-      <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <%= error_msg %>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    <% } %>
-    
-    <% if(error != '') { %>
-      <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <%= error %>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    <% } %>
-    
-    <form class="login-form" action="/login" method="POST">
-      <div class="mb-3">
-        <label for="username" class="form-label">Username</label>
-        <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-person"></i></span>
-          <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
+<body class="h-full flex items-center justify-center p-4">
+  <div x-data="{ loading: false }" class="w-full max-w-md">
+    <div class="glass-effect rounded-2xl p-8 fade-in-up">
+      <div class="text-center mb-8">
+        <div class="inline-block p-4 rounded-full bg-indigo-600 bg-opacity-10 mb-4">
+          <svg class="w-10 h-10 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
         </div>
+        <h2 class="text-3xl font-bold text-white mb-2">Welcome Back</h2>
+        <p class="text-gray-400">Login to your admin dashboard</p>
       </div>
-      
-      <div class="mb-4">
-        <label for="password" class="form-label">Password</label>
-        <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-lock"></i></span>
-          <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+
+      <% if(success_msg != '') { %>
+        <div class="bg-green-500 bg-opacity-10 border border-green-500 text-green-500 px-4 py-3 rounded-lg mb-4 fade-in-up" role="alert">
+          <%= success_msg %>
         </div>
+      <% } %>
+
+      <% if(error_msg != '') { %>
+        <div class="bg-red-500 bg-opacity-10 border border-red-500 text-red-500 px-4 py-3 rounded-lg mb-4 fade-in-up" role="alert">
+          <%= error_msg %>
+        </div>
+      <% } %>
+
+      <% if(error != '') { %>
+        <div class="bg-red-500 bg-opacity-10 border border-red-500 text-red-500 px-4 py-3 rounded-lg mb-4 fade-in-up" role="alert">
+          <%= error %>
+        </div>
+      <% } %>
+
+      <form @submit="loading = true" class="space-y-6" action="/login" method="POST">
+        <div>
+          <label for="username" class="block text-sm font-medium text-gray-300 mb-2">Username</label>
+          <div class="relative">
+            <input type="text" id="username" name="username" required
+              class="input-focus-effect block w-full px-4 py-3 rounded-lg bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:border-indigo-500"
+              placeholder="Enter your username">
+          </div>
+        </div>
+
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+          <div class="relative">
+            <input type="password" id="password" name="password" required
+              class="input-focus-effect block w-full px-4 py-3 rounded-lg bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:border-indigo-500"
+              placeholder="Enter your password">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-hover-effect w-full bg-indigo-600 text-white px-4 py-3 rounded-lg font-medium flex items-center justify-center space-x-2"
+          :class="{ 'opacity-75 cursor-not-allowed': loading }">
+          <span x-show="!loading">Sign In</span>
+          <svg x-show="loading" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </button>
+      </form>
+
+      <div class="mt-6 text-center">
+        <p class="text-sm text-gray-400">Need help? Contact your administrator</p>
       </div>
-      
-      <button type="submit" class="btn btn-primary">
-        <i class="bi bi-box-arrow-in-right me-2"></i> Login
-      </button>
-    </form>
-    
-    <div class="mt-4 text-center">
-      <small class="text-muted">Default login: username: admin, password: admin123</small>
     </div>
   </div>
-  
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Add dynamic background animation
+    document.addEventListener('mousemove', (e) => {
+      const x = e.clientX / window.innerWidth;
+      const y = e.clientY / window.innerHeight;
+      document.body.style.background = `radial-gradient(circle at ${x * 100}% ${y * 100}%, rgb(49, 46, 129), rgb(17, 24, 39))`;
+    });
+  </script>
 </body>
 </html>
