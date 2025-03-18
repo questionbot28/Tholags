@@ -1,18 +1,4 @@
-const { 
-    Client, 
-    Intents, 
-    MessageEmbed, 
-    MessageButton, 
-    MessageActionRow, 
-    MessageSelectMenu, 
-    Permissions, 
-    Modal, 
-    TextInputComponent
-} = require('discord.js');
-const Discord = require('discord.js');
-const fs = require('fs');
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
 const session = require('express-session');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
@@ -27,7 +13,6 @@ const path = require('path');
 // Load configuration early so it's available throughout the application
 require('dotenv').config();
 const config = require('./config.json');
-const token = process.env.DISCORD_BOT_TOKEN || config.token;
 
 const app = express();
 const port = 5000; // Always use port 5000, no fallback needed
@@ -50,6 +35,52 @@ app.get('/ping', (req, res) => {
   console.log('[Server] Health check route hit');
   res.send('Server is live!');
 });
+
+// Session configuration before any routes
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'bot-owner-dashboard-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24 // 1 day
+  }
+}));
+
+// Passport initialization
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash());
+
+// Global response variables
+app.use((req, res, next) => {
+  res.locals.success_msg = req.flash('success_msg');
+  res.locals.error_msg = req.flash('error_msg');
+  res.locals.error = req.flash('error');
+  res.locals.user = req.user || null;
+  next();
+});
+
+// Start Express server first
+const server = app.listen(port, '0.0.0.0', () => {
+  console.log(`[Server] Express server is running on port ${port}`);
+  console.log(`[Server] Server URL: http://0.0.0.0:${port}`);
+}).on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`[Server Error] Port ${port} is already in use. Please ensure no other service is using this port.`);
+    process.exit(1);
+  } else {
+    console.error('[Server Error]:', err);
+    process.exit(1);
+  }
+});
+
+// Initialize Discord bot after Express server is running
+const { Client, Intents, MessageEmbed, MessageButton, MessageActionRow, MessageSelectMenu, Permissions, Modal, TextInputComponent } = require('discord.js');
+const Discord = require('discord.js');
+const fs = require('fs');
+const sqlite3 = require('sqlite3').verbose();
+
+const token = process.env.DISCORD_BOT_TOKEN || config.token;
 
 // Initialize Discord client with all required intents
 const client = new Discord.Client({
@@ -244,29 +275,6 @@ client.on('guildMemberRemove', async (member) => {
     }
 });
 
-// Session configuration
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'bot-owner-dashboard-secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    maxAge: 1000 * 60 * 60 * 24 // 1 day
-  }
-}));
-
-// Passport initialization
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(flash());
-
-// Global response variables
-app.use((req, res, next) => {
-  res.locals.success_msg = req.flash('success_msg');
-  res.locals.error_msg = req.flash('error_msg');
-  res.locals.error = req.flash('error');
-  res.locals.user = req.user || null;
-  next();
-});
 
 // Admin user for the dashboard
 const adminUsers = [
@@ -845,7 +853,7 @@ app.post('/settings/features', ensureAuthenticated, ensureAdmin, (req, res) => {
       : (req.body['ticketcategories[]'] ? [req.body['ticketcategories[]']] : []);
     
     // Update config
-    config.command.error_message = error_message === 'on';
+    config.command.error_message = error_message=== 'on';
     config.command.notfound_message = notfound_message === 'on';
     config.dropSessionActive = dropSessionActive === 'on';
     if (ticketcategories.length > 0) config.ticketcategories = ticketcategories;
@@ -906,18 +914,13 @@ app.get('/logs', ensureAuthenticated, ensureAdmin, (req, res) => {
   }
 });
 
-// Error handling for express server
-app.listen(port, '0.0.0.0', () => {
-  console.log(`[Server] Express server is running on port ${port}`);
-  console.log(`[Server] Server URL: http://0.0.0.0:${port}`);
-}).on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`[Server Error] Port ${port} is already in use. Please ensure no other service is using this port.`);
-    process.exit(1); // Exit if port is in use
-  } else {
-    console.error('[Server Error]:', err);
-    process.exit(1);
-  }
+// Handle process errors
+process.on('unhandledRejection', (error) => {
+    console.error('Unhandled promise rejection:', error);
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught exception:', error);
 });
 
 client.commands = new Discord.Collection();
@@ -1333,15 +1336,6 @@ client.on('messageCreate', (message) => {
     if (message.webhookId && message.channel.id === designatedChannelId) {
         fs.appendFileSync(webhookLogFile, `${message.content}\n`);
     }
-});
-
-// Handle process errors
-process.on('unhandledRejection', (error) => {
-    console.error('Unhandled promise rejection:', error);
-});
-
-process.on('uncaughtException', (error) => {
-    console.error('Uncaught exception:', error);
 });
 
 // Only attempt login if we have a token
