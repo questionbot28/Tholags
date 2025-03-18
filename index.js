@@ -32,6 +32,25 @@ const token = process.env.DISCORD_BOT_TOKEN || config.token;
 const app = express();
 const port = 5000; // Always use port 5000, no fallback needed
 
+// Express configuration
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'dashboard/views'));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(methodOverride('_method'));
+app.use(cookieParser());
+app.use(morgan('dev'));
+app.use(helmet({
+  contentSecurityPolicy: false,
+}));
+
+// Health check route
+app.get('/ping', (req, res) => {
+  console.log('[Server] Health check route hit');
+  res.send('Server is live!');
+});
+
 // Initialize Discord client with all required intents
 const client = new Discord.Client({
     intents: [
@@ -224,19 +243,6 @@ client.on('guildMemberRemove', async (member) => {
         console.error('Error handling member leave:', err);
     }
 });
-
-// Express and EJS setup
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'dashboard/views'));
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(methodOverride('_method'));
-app.use(cookieParser());
-app.use(morgan('dev'));
-app.use(helmet({
-  contentSecurityPolicy: false,
-}));
 
 // Session configuration
 app.use(session({
@@ -901,16 +907,17 @@ app.get('/logs', ensureAuthenticated, ensureAdmin, (req, res) => {
 });
 
 // Error handling for express server
-const server = app.listen(port, '0.0.0.0', () => {
-    console.log(`Server is running on port ${port}`);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`[Server] Express server is running on port ${port}`);
+  console.log(`[Server] Server URL: http://0.0.0.0:${port}`);
 }).on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-        console.error(`Port ${port} is already in use. Please ensure no other service is using this port.`);
-        process.exit(1); // Exit if port is in use
-    } else {
-        console.error('Server error:', err);
-        process.exit(1);
-    }
+  if (err.code === 'EADDRINUSE') {
+    console.error(`[Server Error] Port ${port} is already in use. Please ensure no other service is using this port.`);
+    process.exit(1); // Exit if port is in use
+  } else {
+    console.error('[Server Error]:', err);
+    process.exit(1);
+  }
 });
 
 client.commands = new Discord.Collection();
