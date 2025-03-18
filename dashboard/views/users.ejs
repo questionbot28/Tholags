@@ -1,175 +1,187 @@
 <%- include('partials/header', { title: 'User Management' }) %>
 
-<div class="container-fluid">
-  <div class="row mb-4">
-    <div class="col-md-6">
-      <h1 class="h3 mb-0">User Management</h1>
-      <p class="text-muted">Manage users and their permissions</p>
+<div class="container-fluid fade-in">
+  <!-- Header Section -->
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-bold text-white mb-2">User Management</h1>
+      <p class="text-gray-400">Manage users and their permissions</p>
     </div>
-    <div class="col-md-6 text-md-end">
-      <div class="btn-group">
-        <a href="/users" class="btn btn-primary">
-          <i class="bi bi-arrow-clockwise me-1"></i> Refresh Users
-        </a>
-      </div>
-    </div>
+    <button class="btn-hover-effect bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2" onclick="location.reload()">
+      <i class="fas fa-sync-alt"></i>
+      <span>Refresh Users</span>
+    </button>
   </div>
 
   <!-- Alert Messages -->
-  <% if(typeof success_msg !== 'undefined' && success_msg !== '') { %>
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
+  <% if(success_msg !== '') { %>
+    <div class="scale-in bg-green-500 bg-opacity-10 border border-green-500 text-green-500 px-4 py-3 rounded-lg mb-4" role="alert">
       <%= success_msg %>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <button type="button" class="float-right" onclick="this.parentElement.remove()">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
   <% } %>
 
-  <% if(typeof error_msg !== 'undefined' && error_msg !== '') { %>
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+  <% if(error_msg !== '') { %>
+    <div class="scale-in bg-red-500 bg-opacity-10 border border-red-500 text-red-500 px-4 py-3 rounded-lg mb-4" role="alert">
       <%= error_msg %>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <button type="button" class="float-right" onclick="this.parentElement.remove()">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
   <% } %>
 
   <!-- User Stats -->
-  <div class="row mb-4">
-    <div class="col-md-4">
-      <div class="card stats-card h-100">
-        <div class="card-body">
-          <i class="bi bi-people-fill"></i>
-          <div class="count">
-            <%= users ? users.length : 0 %>
-          </div>
-          <div class="label">Total Users</div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- Total Users Card -->
+    <div class="glass-effect rounded-xl p-6 card-hover scale-in">
+      <div class="flex items-center justify-between mb-4">
+        <div class="p-3 bg-indigo-600 bg-opacity-20 rounded-lg">
+          <i class="fas fa-users text-2xl text-indigo-500"></i>
         </div>
+        <span class="text-2xl font-bold text-white">
+          <%= users ? users.length : 0 %>
+        </span>
       </div>
+      <h3 class="text-lg font-semibold text-white">Total Users</h3>
+      <p class="text-gray-400 mt-1">Registered platform users</p>
     </div>
 
-    <div class="col-md-4">
-      <div class="card stats-card h-100">
-        <div class="card-body">
-          <i class="bi bi-check-circle"></i>
-          <div class="count">
-            <% 
-              let verifiedCount = 0;
-              if (users) {
-                users.forEach(user => {
-                  if (user.isVerified) verifiedCount++;
-                });
-              }
-            %>
-            <%= verifiedCount %>
-          </div>
-          <div class="label">Verified Users</div>
+    <!-- Verified Users Card -->
+    <div class="glass-effect rounded-xl p-6 card-hover scale-in" style="animation-delay: 0.1s">
+      <div class="flex items-center justify-between mb-4">
+        <div class="p-3 bg-green-600 bg-opacity-20 rounded-lg">
+          <i class="fas fa-check-circle text-2xl text-green-500"></i>
         </div>
+        <span class="text-2xl font-bold text-white">
+          <% 
+            let verifiedCount = 0;
+            if (users) {
+              users.forEach(user => {
+                if (user.isVerified) verifiedCount++;
+              });
+            }
+          %>
+          <%= verifiedCount %>
+        </span>
       </div>
+      <h3 class="text-lg font-semibold text-white">Verified Users</h3>
+      <p class="text-gray-400 mt-1">Identity verified accounts</p>
     </div>
 
-    <div class="col-md-4">
-      <div class="card stats-card h-100">
-        <div class="card-body">
-          <i class="bi bi-award"></i>
-          <div class="count">
-            <% 
-              let vouchTotal = 0;
-              if (users) {
-                users.forEach(user => {
-                  vouchTotal += user.positive || 0;
-                });
-              }
-            %>
-            <%= vouchTotal %>
-          </div>
-          <div class="label">Total Vouches</div>
+    <!-- Total Vouches Card -->
+    <div class="glass-effect rounded-xl p-6 card-hover scale-in" style="animation-delay: 0.2s">
+      <div class="flex items-center justify-between mb-4">
+        <div class="p-3 bg-purple-600 bg-opacity-20 rounded-lg">
+          <i class="fas fa-award text-2xl text-purple-500"></i>
         </div>
+        <span class="text-2xl font-bold text-white">
+          <% 
+            let vouchTotal = 0;
+            if (users) {
+              users.forEach(user => {
+                vouchTotal += user.positive || 0;
+              });
+            }
+          %>
+          <%= vouchTotal %>
+        </span>
       </div>
+      <h3 class="text-lg font-semibold text-white">Total Vouches</h3>
+      <p class="text-gray-400 mt-1">Positive community feedback</p>
     </div>
   </div>
 
   <!-- Users Table -->
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">Users</h5>
-          <div class="input-group w-25">
-            <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control" id="userSearch" placeholder="Search users...">
-          </div>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table mb-0" id="usersTable">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Discord ID</th>
-                  <th>Username</th>
-                  <th>Vouches</th>
-                  <th>Status</th>
-                  <th class="text-end">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% if (users && users.length > 0) { %>
-                  <% users.forEach((user, index) => { %>
-                    <tr>
-                      <td><%= index + 1 %></td>
-                      <td><code><%= user.userID || 'N/A' %></code></td>
-                      <td><%= user.username || 'Unknown' %></td>
-                      <td>
-                        <span class="text-success">+<%= user.positive || 0 %></span> / 
-                        <span class="text-danger">-<%= user.negative || 0 %></span>
-                      </td>
-                      <td>
-                        <% if (user.isVerified) { %>
-                          <span class="badge bg-success">Verified</span>
-                        <% } else { %>
-                          <span class="badge bg-secondary">Unverified</span>
-                        <% } %>
-                      </td>
-                      <td class="text-end">
-                        <div class="btn-group btn-group-sm">
-                          <button type="button" class="btn btn-primary" 
-                                  data-bs-toggle="modal" 
-                                  data-bs-target="#viewUserModal"
-                                  data-user-id="<%= user.userID %>"
-                                  data-username="<%= user.username %>"
-                                  data-positive="<%= user.positive || 0 %>"
-                                  data-negative="<%= user.negative || 0 %>"
-                                  data-verified="<%= user.isVerified ? 'true' : 'false' %>">
-                            <i class="bi bi-eye"></i>
-                          </button>
-                          <button type="button" class="btn btn-warning" 
-                                  data-bs-toggle="modal" 
-                                  data-bs-target="#editUserModal"
-                                  data-user-id="<%= user.userID %>"
-                                  data-username="<%= user.username %>"
-                                  data-positive="<%= user.positive || 0 %>"
-                                  data-negative="<%= user.negative || 0 %>"
-                                  data-verified="<%= user.isVerified ? 'true' : 'false' %>">
-                            <i class="bi bi-pencil"></i>
-                          </button>
-                          <button type="button" class="btn btn-danger" 
-                                  data-bs-toggle="modal" 
-                                  data-bs-target="#deleteUserModal"
-                                  data-user-id="<%= user.userID %>"
-                                  data-username="<%= user.username %>">
-                            <i class="bi bi-trash"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  <% }); %>
-                <% } else { %>
-                  <tr>
-                    <td colspan="6" class="text-center">No users found</td>
-                  </tr>
-                <% } %>
-              </tbody>
-            </table>
-          </div>
-        </div>
+  <div class="glass-effect rounded-xl p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-semibold text-white">Users</h2>
+      <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        <input type="text" 
+               id="userSearch" 
+               class="bg-gray-900 border border-gray-700 text-white pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:border-indigo-500"
+               placeholder="Search users...">
       </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full" id="usersTable">
+        <thead>
+          <tr class="text-left text-gray-400 border-b border-gray-700">
+            <th class="pb-3 px-4">#</th>
+            <th class="pb-3 px-4">Discord ID</th>
+            <th class="pb-3 px-4">Username</th>
+            <th class="pb-3 px-4">Vouches</th>
+            <th class="pb-3 px-4">Status</th>
+            <th class="pb-3 px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="text-gray-300">
+          <% if (users && users.length > 0) { %>
+            <% users.forEach((user, index) => { %>
+              <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                <td class="py-4 px-4"><%= index + 1 %></td>
+                <td class="py-4 px-4">
+                  <code class="bg-gray-900 px-2 py-1 rounded text-sm"><%= user.userID || 'N/A' %></code>
+                </td>
+                <td class="py-4 px-4"><%= user.username || 'Unknown' %></td>
+                <td class="py-4 px-4">
+                  <span class="text-green-500">+<%= user.positive || 0 %></span>
+                  <span class="mx-1">/</span>
+                  <span class="text-red-500">-<%= user.negative || 0 %></span>
+                </td>
+                <td class="py-4 px-4">
+                  <% if (user.isVerified) { %>
+                    <span class="bg-green-500 bg-opacity-10 text-green-500 text-sm px-2 py-1 rounded-full">Verified</span>
+                  <% } else { %>
+                    <span class="bg-gray-500 bg-opacity-10 text-gray-400 text-sm px-2 py-1 rounded-full">Unverified</span>
+                  <% } %>
+                </td>
+                <td class="py-4 px-4 text-right">
+                  <div class="flex items-center justify-end space-x-2">
+                    <button type="button" 
+                            class="btn-hover-effect bg-blue-600 bg-opacity-20 text-blue-500 p-2 rounded-lg"
+                            data-bs-toggle="modal" 
+                            data-bs-target="#viewUserModal"
+                            data-user-id="<%= user.userID %>"
+                            data-username="<%= user.username %>"
+                            data-positive="<%= user.positive || 0 %>"
+                            data-negative="<%= user.negative || 0 %>"
+                            data-verified="<%= user.isVerified ? 'true' : 'false' %>">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button type="button" 
+                            class="btn-hover-effect bg-yellow-600 bg-opacity-20 text-yellow-500 p-2 rounded-lg"
+                            data-bs-toggle="modal" 
+                            data-bs-target="#editUserModal"
+                            data-user-id="<%= user.userID %>"
+                            data-username="<%= user.username %>"
+                            data-positive="<%= user.positive || 0 %>"
+                            data-negative="<%= user.negative || 0 %>"
+                            data-verified="<%= user.isVerified ? 'true' : 'false' %>">
+                      <i class="fas fa-pencil"></i>
+                    </button>
+                    <button type="button" 
+                            class="btn-hover-effect bg-red-600 bg-opacity-20 text-red-500 p-2 rounded-lg"
+                            data-bs-toggle="modal" 
+                            data-bs-target="#deleteUserModal"
+                            data-user-id="<%= user.userID %>"
+                            data-username="<%= user.username %>">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="6" class="py-4 px-4 text-center text-gray-500">No users found</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -177,51 +189,49 @@
 <!-- View User Modal -->
 <div class="modal fade" id="viewUserModal" tabindex="-1" aria-labelledby="viewUserModalLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="viewUserModalLabel">User Details</h5>
+    <div class="modal-content glass-effect border border-gray-700 rounded-xl shadow-xl">
+      <div class="modal-header border-b border-gray-700">
+        <h5 class="modal-title text-white" id="viewUserModalLabel">User Details</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-        <div class="text-center mb-4">
-          <div class="avatar-placeholder bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-            <i class="bi bi-person-fill" style="font-size: 2.5rem;"></i>
+      <div class="modal-body text-center">
+        <div class="mb-6">
+          <div class="w-20 h-20 bg-indigo-600 bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-user-circle text-4xl text-indigo-500"></i>
           </div>
-          <h4 id="viewUsername">Username</h4>
-          <div id="viewUserStatus" class="badge bg-success">Verified</div>
+          <h4 id="viewUsername" class="text-xl font-semibold text-white mb-2"></h4>
+          <div id="viewUserStatus" class="inline-block"></div>
         </div>
 
-        <div class="row mb-3">
-          <div class="col-6">
-            <div class="card bg-dark h-100">
-              <div class="card-body text-center">
-                <h5 class="text-success mb-1">+<span id="viewPositive">0</span></h5>
-                <div class="text-muted small">Positive Vouches</div>
-              </div>
-            </div>
+        <div class="grid grid-cols-2 gap-4 mb-6">
+          <div class="glass-effect rounded-lg p-4">
+            <h5 class="text-green-500 text-xl font-bold mb-1">+<span id="viewPositive">0</span></h5>
+            <div class="text-gray-400 text-sm">Positive Vouches</div>
           </div>
-          <div class="col-6">
-            <div class="card bg-dark h-100">
-              <div class="card-body text-center">
-                <h5 class="text-danger mb-1">-<span id="viewNegative">0</span></h5>
-                <div class="text-muted small">Negative Vouches</div>
-              </div>
-            </div>
+          <div class="glass-effect rounded-lg p-4">
+            <h5 class="text-red-500 text-xl font-bold mb-1">-<span id="viewNegative">0</span></h5>
+            <div class="text-gray-400 text-sm">Negative Vouches</div>
           </div>
         </div>
 
-        <div class="mb-3">
-          <label class="form-label">Discord ID</label>
-          <div class="input-group">
-            <input type="text" class="form-control" id="viewUserID" value="123456789" readonly>
-            <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('viewUserID')">
-              <i class="bi bi-clipboard"></i>
+        <div class="text-left mb-4">
+          <label class="text-sm font-medium text-gray-400 mb-2 block">Discord ID</label>
+          <div class="flex">
+            <input type="text" 
+                   class="flex-1 bg-gray-900 border border-gray-700 text-white rounded-l-lg px-4 py-2" 
+                   id="viewUserID" 
+                   readonly>
+            <button class="bg-gray-800 border border-l-0 border-gray-700 text-gray-400 rounded-r-lg px-4" 
+                    onclick="copyToClipboard('viewUserID')">
+              <i class="fas fa-copy"></i>
             </button>
           </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      <div class="modal-footer border-t border-gray-700">
+        <button type="button" class="btn-hover-effect bg-gray-700 text-white px-4 py-2 rounded-lg" data-bs-dismiss="modal">
+          Close
+        </button>
       </div>
     </div>
   </div>
@@ -230,44 +240,65 @@
 <!-- Edit User Modal -->
 <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+    <div class="modal-content glass-effect border border-gray-700 rounded-xl shadow-xl">
+      <div class="modal-header border-b border-gray-700">
+        <h5 class="modal-title text-white" id="editUserModalLabel">Edit User</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form action="/users/edit" method="POST">
         <div class="modal-body">
-          <input type="hidden" id="editUserID" name="userID" value="">
+          <input type="hidden" id="editUserID" name="userID">
 
-          <div class="mb-3">
-            <label for="editUsername" class="form-label">Username</label>
-            <input type="text" class="form-control" id="editUsername" name="username" value="" required>
+          <div class="mb-4">
+            <label for="editUsername" class="block text-sm font-medium text-gray-400 mb-2">Username</label>
+            <input type="text" 
+                   class="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500"
+                   id="editUsername" 
+                   name="username" 
+                   required>
           </div>
 
-          <div class="row mb-3">
-            <div class="col-6">
-              <label for="editPositive" class="form-label">Positive Vouches</label>
-              <input type="number" class="form-control" id="editPositive" name="positive" value="0" min="0" required>
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label for="editPositive" class="block text-sm font-medium text-gray-400 mb-2">Positive Vouches</label>
+              <input type="number" 
+                     class="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500"
+                     id="editPositive" 
+                     name="positive" 
+                     min="0" 
+                     required>
             </div>
-            <div class="col-6">
-              <label for="editNegative" class="form-label">Negative Vouches</label>
-              <input type="number" class="form-control" id="editNegative" name="negative" value="0" min="0" required>
+            <div>
+              <label for="editNegative" class="block text-sm font-medium text-gray-400 mb-2">Negative Vouches</label>
+              <input type="number" 
+                     class="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500"
+                     id="editNegative" 
+                     name="negative" 
+                     min="0" 
+                     required>
             </div>
           </div>
 
-          <div class="mb-3 form-check">
-            <input type="checkbox" class="form-check-input" id="editVerified" name="isVerified">
-            <label class="form-check-label" for="editVerified">User is verified</label>
+          <div class="flex items-center mb-4">
+            <input type="checkbox" 
+                   class="bg-gray-900 border-gray-700 rounded text-indigo-600 focus:ring-indigo-500" 
+                   id="editVerified" 
+                   name="isVerified">
+            <label class="ml-2 text-gray-400" for="editVerified">User is verified</label>
           </div>
 
-          <div class="alert alert-warning small">
-            <i class="bi bi-exclamation-triangle me-2"></i>
+          <div class="bg-yellow-500 bg-opacity-10 border border-yellow-500 text-yellow-500 px-4 py-3 rounded-lg">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
             Editing user data directly may affect their Discord experience. Make changes with caution.
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Changes</button>
+        <div class="modal-footer border-t border-gray-700">
+          <button type="button" class="btn-hover-effect bg-gray-700 text-white px-4 py-2 rounded-lg" data-bs-dismiss="modal">
+            Cancel
+          </button>
+          <button type="submit" class="btn-hover-effect bg-indigo-600 text-white px-4 py-2 rounded-lg ml-2">
+            Save Changes
+          </button>
         </div>
       </form>
     </div>
@@ -277,29 +308,80 @@
 <!-- Delete User Modal -->
 <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="deleteUserModalLabel">Delete User</h5>
+    <div class="modal-content glass-effect border border-gray-700 rounded-xl shadow-xl">
+      <div class="modal-header border-b border-gray-700">
+        <h5 class="modal-title text-white" id="deleteUserModalLabel">Delete User</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p>Are you sure you want to delete this user? This action cannot be undone.</p>
-        <p><strong>User:</strong> <span id="deleteUsername"></span></p>
-        <div class="alert alert-danger small">
-          <i class="bi bi-exclamation-triangle me-2"></i>
-          Deleting a user will remove all their vouches and verification status.
+        <div class="bg-red-500 bg-opacity-10 border border-red-500 text-red-500 px-4 py-3 rounded-lg mb-4">
+          <i class="fas fa-exclamation-triangle mr-2"></i>
+          Warning: This action cannot be undone.
         </div>
+        <p class="text-gray-400 mb-4">Are you sure you want to delete this user?</p>
+        <p>
+          <strong class="text-white">User:</strong>
+          <span id="deleteUsername" class="text-gray-400"></span>
+        </p>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <form id="deleteUserForm" action="/users/delete" method="POST">
-          <input type="hidden" id="deleteUserID" name="userID" value="">
-          <button type="submit" class="btn btn-danger">Delete</button>
+      <div class="modal-footer border-t border-gray-700">
+        <button type="button" class="btn-hover-effect bg-gray-700 text-white px-4 py-2 rounded-lg" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <form id="deleteUserForm" action="/users/delete" method="POST" class="inline">
+          <input type="hidden" id="deleteUserID" name="userID">
+          <button type="submit" class="btn-hover-effect bg-red-600 text-white px-4 py-2 rounded-lg ml-2">
+            Delete User
+          </button>
         </form>
       </div>
     </div>
   </div>
 </div>
+
+<style>
+  .btn-hover-effect {
+    transition: all 0.3s ease;
+  }
+
+  .btn-hover-effect:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  .card-hover {
+    transition: all 0.3s ease;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  @keyframes scaleIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
 
 <script>
   function copyToClipboard(elementId) {
@@ -357,11 +439,11 @@
 
       const statusBadge = document.getElementById('viewUserStatus');
       if (verified) {
+        statusBadge.className = 'bg-green-500 bg-opacity-10 text-green-500 text-sm px-2 py-1 rounded-full';
         statusBadge.textContent = 'Verified';
-        statusBadge.className = 'badge bg-success';
       } else {
+        statusBadge.className = 'bg-gray-500 bg-opacity-10 text-gray-400 text-sm px-2 py-1 rounded-full';
         statusBadge.textContent = 'Unverified';
-        statusBadge.className = 'badge bg-secondary';
       }
     });
 
